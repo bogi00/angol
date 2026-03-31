@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Angolt</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#111827; --muted:#9ca3af; --ok:#10b981; --err:#ef4444; --pri:#60a5fa;
+    --ink:#e5e7eb; --ink2:#cbd5e1; --chip:#1f2937;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:18px 18px 8px 18px;box-shadow:0 10px 30px rgba(0,0,0,.25);margin-bottom:18px}
+  .h1{font-size:26px;font-weight:800;margin:2px 0 14px}
+  .h2{font-size:18px;color:var(--ink2);margin:0 0 10px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{appearance:none;border:1px solid #334155;background:#0b1220;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn:hover{border-color:#475569;background:#0c1a33}
+  .btn.primary{background:linear-gradient(180deg,#1d4ed8,#1e40af);border-color:#1e3a8a}
+  .btn.ghost{background:transparent;border-color:#334155}
+  .btn.small{padding:6px 10px;font-size:13px}
+  .meta{color:var(--muted);font-size:13px}
+  .q{margin:8px 0 10px}
+  .opt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid #1f2937;background:#0a1324;margin:6px 0}
+  .opt input{margin-top:2px}
+  .opt.correct{border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.08)}
+  .opt.incorrect{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.08)}
+  .pill{display:inline-block;background:var(--chip);border:1px solid #334155;color:var(--ink2);font-size:12px;border-radius:999px;padding:3px 9px;margin-right:6px}
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;border-top:1px dashed #334155;padding-top:10px}
+  input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--ink)}
+  .score{font-size:18px;font-weight:800}
+  .tag{font-size:12px;color:#93c5fd}
+  .hidden{display:none}
+  .tabs .btn.active{border-color:#1e3a8a; background:#0c1a33}
+  .list-item{padding:8px;border-bottom:1px dashed #334155}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="h1">Angol teszt</div>
+    <div class="row tabs" style="margin-top:10px">
+      <button id="startBtn" class="btn primary" type="button">Új teszt indítása (20 véletlen kérdés)</button>
+      <button id="showAllBtn" class="btn ghost" type="button">Összes kérdés listázása (tanuláshoz)</button>
+      <button id="unseenTabBtn" class="btn ghost" type="button">Még nem tanult kérdéseim</button>
+      <button id="mistakesTabBtn" class="btn ghost" type="button">Hibáim (rossz válaszok)</button>
+    </div>
+  </div>
+
+  <div id="testContainer"></div>
+
+  <div id="resultCard" class="card hidden">
+    <div class="h1">Eredmény</div>
+    <div id="scoreLine" class="score"></div>
+    <div id="detailLine" class="meta" style="margin-top:6px"></div>
+    <div class="row" style="margin-top:12px; flex-wrap:wrap; gap:10px;">
+      <button class="btn primary" id="restartBtn" type="button">Új, véletlen 20 kérdés</button>
+      <button class="btn" id="reviewBtn" type="button">Összes (aktuális) kérdés megoldásának mutatása</button>
+      <button class="btn ghost" id="resultPracticeMistakesBtn" type="button">Hibáim tanulása ()</button>
+    </div>
+  </div>
+
+  <div id="bulkCard" class="card hidden">
+    <div class="h2">Gyors ellenőrzés és gyakorlás</div>
+    <div class="meta">Ezekkel gyorsan újratanulhatod a hibáidat.</div>
+    <div class="row" style="margin-top:10px; flex-wrap:wrap; gap:12px;">
+      <button class="btn ghost" id="practiceMistakesBtn" type="button">Hibáim tanulása (10 véletlen kérdés)</button>
+      <button class="btn" id="practiceMistakesAll" type="button">Összes hibám gyakorlása</button>
+    </div>
+  </div>
+
+  <!-- Hibáim -->
+  <div id="mistakesCard" class="card hidden">
+    <div class="h2">Hibáim – gyakorló lista</div>
+    <div class="meta" id="mistakesMeta">Még nincs rögzített hibád.</div>
+    <div class="row" style="margin:10px 0">
+      <button id="practiceMistakes10" class="btn" type="button">Gyakorlás a hibáimból (10)</button>
+      <button id="practiceMistakes20" class="btn" type="button">Gyakorlás a hibáimból (30)</button>
+      <button id="clearMistakesBtn" class="btn ghost" type="button">Hibalista törlése</button>
+    </div>
+    <div id="mistakesList"></div>
+  </div>
+
+  <!-- Még nem tanult -->
+  <div id="unseenCard" class="card hidden">
+    <div class="h2">Még nem tanult kérdéseim</div>
+    <div class="meta" id="unseenMeta">Betöltés…</div>
+    <div class="row" style="margin:10px 0">
+      <button id="practiceUnseen10" class="btn" type="button">Gyakorlás (10 véletlen)</button>
+      <button id="practiceUnseen20" class="btn" type="button">Gyakorlás (80 véletlen)</button>
+      <button id="clearSeenBtn" class="btn ghost" type="button">„Megnézettek” törlése</button>
+    </div>
+    <div id="unseenList"></div>
+  </div>
+</div>
+
+<script>
+ 
+const QUESTION_BANK = [
+  {
+    id: "english-mcq-001",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "Which of the following best describes cyclical unemployment?",
+    options: [
+      "Unemployment that increases during economic expansions",
+      "Unemployment that rises during economic recessions",
+      "Unemployment that remains stable regardless of economic conditions",
+      "Unemployment caused by technological changes"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-002",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "What is a common rule of thumb for identifying a recession?",
+    options: [
+      "Two consecutive quarters of negative GDP growth",
+      "One quarter of zero GDP growth",
+      "An inflation rate above 5%",
+      "A reduction in GNI for one year"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-003",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "What does the unemployment rate represent?",
+    options: [
+      "The percentage of the population that is employed",
+      "The number of people searching for jobs but unable to find work",
+      "The percentage of the workforce that is unemployed",
+      "The total number of jobs available in the economy"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-004",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "What does 'levelling off' refer to in the context of economic trends?",
+    options: [
+      "A sudden increase in growth",
+      "A stabilization after growth or decline",
+      "A sharp decline in output",
+      "A steady increase in inflation"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-005",
+    type: "mcq",
+    multi: false,
+    topic: "Charts",
+    text: "Which type of chart is useful for showing the percentage breakdown of data?",
+    options: [
+      "Line graph",
+      "Bar chart",
+      "Pie chart",
+      "Histogram"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-006",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "Which of the following describes a trough in the business cycle?",
+    options: [
+      "The highest point of economic activity",
+      "The lowest point of economic activity",
+      "A short-term contraction",
+      "A period of steady economic growth"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-007",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "Which economic measure focuses on the income earned by a country's residents regardless of where they are?",
+    options: [
+      "GDP",
+      "GNI",
+      "CPI",
+      "PPI"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-008",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "Which term refers to a severe and prolonged economic downturn?",
+    options: [
+      "Recession",
+      "Depression",
+      "Contraction",
+      "Peak"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-009",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "Which type of unemployment is caused by technological changes?",
+    options: [
+      "Frictional unemployment",
+      "Cyclical unemployment",
+      "Structural unemployment",
+      "Seasonal unemployment"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-010",
+    type: "mcq",
+    multi: false,
+    topic: "Macroeconomics",
+    text: "Which of the following is NOT a key macroeconomic indicator?",
+    options: [
+      "Real Gross Domestic Product",
+      "Inflation rate",
+      "Exchange rate",
+      "Corporate revenue"
+    ],
+    correct: [3]
+  },
+  {
+    id: "english-mcq-011",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "Which of the following is a characteristic of a multi-active culture according to the Lewis Model?",
+    options: [
+      "Focused on strict schedules and deadlines",
+      "Comfortable with silence during conversations",
+      "Likes to do many things at the same time",
+      "Avoids initiating discussions"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-012",
+    type: "mcq",
+    multi: false,
+    topic: "Business Communication",
+    text: "Official records of the discussions and decisions made during a meeting.",
+    options: [
+      "Memo",
+      "Minute",
+      "Presentation",
+      "Email"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-013",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "According to Hofstede, which cultural dimension deals with the degree to which members of a society feel uncomfortable with uncertainty and ambiguity?",
+    options: [
+      "Masculinity vs Femininity",
+      "Long-term orientation vs Short-term orientation",
+      "Power Distance Index",
+      "Uncertainty Avoidance Index"
+    ],
+    correct: [3]
+  },
+  {
+    id: "english-mcq-014",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "In the Lewis Model of cultural types, which colour is associated with linear-active cultures?",
+    options: [
+      "Red",
+      "Blue",
+      "Yellow",
+      "Green"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-015",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "What does the Power Distance Index (PDI) in Hofstede's Cultural Dimensions measure?",
+    options: [
+      "The degree of uncertainty people can tolerate",
+      "The relationship between individualism and collectivism",
+      "The extent to which less powerful members of society accept unequal distribution of power",
+      "The level of masculinity in a society"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-016",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "Which of the following is NOT a component of Edward T. Hall's Iceberg Model of culture?",
+    options: [
+      "High and low context communication",
+      "Surface-level behaviors",
+      "Deep, underlying values",
+      "Non-verbal gestures like facial expressions"
+    ],
+    correct: [3]
+  },
+  {
+    id: "english-mcq-017",
+    type: "mcq",
+    multi: false,
+    topic: "Business Culture",
+    text: "Which of the following describes a 'clan culture' in business environments?",
+    options: [
+      "Focus on innovation and taking risks",
+      "Strong emphasis on collaboration and team cohesion",
+      "Priority on financial success",
+      "Rigid organizational hierarchy"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-018",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "What is the primary focus of low-context communication in Hall's Iceberg Model?",
+    options: [
+      "Reliance on explicit verbal communication",
+      "Reliance on non-verbal cues and implicit meaning",
+      "Emphasis on group harmony",
+      "Use of formal rituals"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-019",
+    type: "mcq",
+    multi: false,
+    topic: "Business Communication",
+    text: "Which is not part of a MEMO?",
+    options: [
+      "Heading",
+      "Opening paragraph",
+      "Problem statement",
+      "Closing paragraph"
+    ],
+    correct: [3]
+  },
+  {
+    id: "english-mcq-020",
+    type: "mcq",
+    multi: false,
+    topic: "Culture",
+    text: "In Hofstede's model, a society that prefers cooperation, modesty, and quality of life is considered:",
+    options: [
+      "High in masculinity",
+      "High in femininity",
+      "High in individualism",
+      "Low in uncertainty avoidance"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-021",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "What does 'price skimming' entail?",
+    options: [
+      "Charging a low price initially to attract customers",
+      "Selling products below cost to drive traffic",
+      "Charging a high price at the beginning and lowering it over time",
+      "Bundling products to increase sales"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-022",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "What is the main advantage of direct distribution?",
+    options: [
+      "Lower marketing costs",
+      "Full control over pricing and customer experience",
+      "Wider market reach",
+      "Reduced customer service efforts"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-023",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which of the following is NOT part of the traditional marketing mix (4 Ps)?",
+    options: [
+      "Product",
+      "Price",
+      "Process",
+      "Promotion"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-024",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "What type of promotion involves providing a limited-time discount to boost sales?",
+    options: [
+      "Public relations",
+      "Advertising",
+      "Sales promotion",
+      "Personal selling"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-025",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which pricing strategy involves setting a low price initially to gain market share and then raising the price over time?",
+    options: [
+      "Price skimming",
+      "Value-based pricing",
+      "Penetration pricing",
+      "Cost-plus pricing"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-026",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which segmentation method divides the market based on consumers' interests, values, and lifestyle?",
+    options: [
+      "Demographic segmentation",
+      "Behavioral segmentation",
+      "Geographic segmentation",
+      "Psychographic segmentation"
+    ],
+    correct: [3]
+  },
+  {
+    id: "english-mcq-027",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which element of the marketing mix involves determining the amount charged for a product?",
+    options: [
+      "Product",
+      "Price",
+      "Place",
+      "Promotion"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-028",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which of the following is an example of a niche marketing strategy?",
+    options: [
+      "Selling low-cost items to a broad audience",
+      "Targeting a small, specific segment with tailored products",
+      "Offering the same product to the entire market",
+      "Competing with the highest price in the market"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-029",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "What is the primary goal of marketing?",
+    options: [
+      "To lower production costs",
+      "To identify and satisfy customer needs profitably",
+      "To increase the number of product features",
+      "To ensure product availability in all stores"
+    ],
+    correct: [1]
+  },
+  {
+    id: "english-mcq-030",
+    type: "mcq",
+    multi: false,
+    topic: "Marketing",
+    text: "Which of the following is the main focus of 'place' in the marketing mix?",
+    options: [
+      "The features of the product",
+      "The pricing strategies",
+      "The distribution channels and locations",
+      "The advertising techniques used"
+    ],
+    correct: [2]
+  },
+  {
+    id: "english-mcq-031",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What is a significant environmental impact of globalization?",
+    options: [
+      "Climate change",
+      "Improved biodiversity",
+      "Increased forestation",
+      "Reduced pollution"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-032",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What marked the beginnings of global economic links?",
+    options: [
+      "The Silk Road",
+      "The Industrial Revolution",
+      "The Age of Digitalization",
+      "The Cold War"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-033",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What is sustainable development?",
+    options: [
+      "Economic growth without harming future generations",
+      "Exploiting natural resources for profit",
+      "Development focused on urban areas",
+      "A system with no environmental regulations"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-034",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What does protectionism aim to do?",
+    options: [
+      "Protect domestic markets from foreign competition",
+      "Promote unrestricted global trade",
+      "Eliminate tariffs",
+      "Encourage outsourcing"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-035",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "Which organization was created to regulate global trade in 1995?",
+    options: [
+      "The World Trade Organization (WTO)",
+      "The League of Nations",
+      "The G7",
+      "The European Union"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-036",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What is outsourcing?",
+    options: [
+      "Delegating operations to another contractor",
+      "Importing foreign labor",
+      "Exporting goods internationally",
+      "Restricting trade to local areas"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-037",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What was established during the Bretton Woods Agreement?",
+    options: [
+      "Fixed currency exchange rates",
+      "Free trade zones",
+      "Digital currency systems",
+      "Blockchain technologies"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-038",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What are tariffs?",
+    options: [
+      "Taxes charged on imports",
+      "Subsidies for local businesses",
+      "Quotas for trade volumes",
+      "Free trade agreements"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-039",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What is a balance of payments surplus?",
+    options: [
+      "When inflow exceeds outflow",
+      "When outflow exceeds inflow",
+      "When imports are higher than exports",
+      "When there is no international trade"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-040",
+    type: "mcq",
+    multi: false,
+    topic: "Globalization",
+    text: "What is globalization?",
+    options: [
+      "A process characterized by the flow of goods, services, capital, and information on an international scale",
+      "A local economic exchange of goods",
+      "A focus on national economies only",
+      "A system where trade is restricted"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-041",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What does employment refer to in economics?",
+    options: [
+      "Having paid work",
+      "Volunteering for a cause",
+      "A contract-based job",
+      "Working as a freelancer"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-042",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What does 'remote work' mean?",
+    options: [
+      "Working from home or outside the office",
+      "Being on-call during the night",
+      "Temporary office arrangements",
+      "Managing physical labor jobs"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-043",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What is the purpose of a cover letter?",
+    options: [
+      "Introduce yourself to the employer",
+      "Replace the resume",
+      "List only personal achievements",
+      "Provide salary expectation"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-044",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What is a signing bonus?",
+    options: [
+      "A one-time payment to attract talent",
+      "Compensation for extra work hours",
+      "A bonus for meeting performance targets",
+      "Profit-sharing"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-045",
+    type: "mcq",
+    multi: false,
+    topic: "Recruitment",
+    text: "What is recruitment?",
+    options: [
+      "The process of finding and selecting candidates",
+      "Hiring only senior employees",
+      "Screening internal employees exclusively",
+      "A strategy for marketing products"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-046",
+    type: "mcq",
+    multi: false,
+    topic: "Recruitment",
+    text: "What step follows screening in the recruitment process?",
+    options: [
+      "Shortlisting candidates",
+      "Defining the job role",
+      "Conducting psychometric tests",
+      "Issuing job offers"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-047",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What does remuneration include?",
+    options: [
+      "Salaries, wages, and other compensation",
+      "Only direct payments",
+      "Holiday bonuses exclusively",
+      "Non-financial benefits"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-048",
+    type: "mcq",
+    multi: false,
+    topic: "Recruitment",
+    text: "What is internal recruitment?",
+    options: [
+      "Promoting existing employees",
+      "Advertising jobs externally",
+      "Using a recruitment agency",
+      "Hiring from competitor companies"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-049",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "Which is an example of fringe benefits?",
+    options: [
+      "Company car",
+      "Hourly wages",
+      "Overtime pay",
+      "Commission"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-050",
+    type: "mcq",
+    multi: false,
+    topic: "Employment",
+    text: "What is the role of equity compensation?",
+    options: [
+      "Align employee interests with company performance",
+      "Provide fixed wages",
+      "Offer direct pay without bonuses",
+      "Replace all other benefits"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-051",
+    type: "mcq",
+    multi: false,
+    topic: "CSR",
+    text: "CSR refers to a company's efforts to:",
+    options: [
+      "Contribute to society beyond profit-making",
+      "Minimize production costs",
+      "Expand market share",
+      "Promote individual employee agendas"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-052",
+    type: "mcq",
+    multi: false,
+    topic: "CSR",
+    text: "Ethical labour practices in CSR focus on:",
+    options: [
+      "Ensuring fair wages and safe working conditions",
+      "Prioritizing cost-cutting measures",
+      "Limiting workers' rights",
+      "Increasing production hours"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-053",
+    type: "mcq",
+    multi: false,
+    topic: "Business Ethics",
+    text: "Ethical behaviour in the workplace is critical for:",
+    options: [
+      "Building trust and credibility",
+      "Reducing operational costs",
+      "Increasing short-term profits",
+      "Enhancing digital communication"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-054",
+    type: "mcq",
+    multi: false,
+    topic: "Business Culture",
+    text: "A toxic business culture often leads to:",
+    options: [
+      "High turnover and low morale",
+      "Enhanced employee satisfaction",
+      "Improved productivity",
+      "Greater inclusivity"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-055",
+    type: "mcq",
+    multi: false,
+    topic: "CSR",
+    text: "CSR practices often include:",
+    options: [
+      "Ethical labour practices",
+      "Aggressive advertising",
+      "Restrictive employee policies",
+      "Unchecked resource exploitation"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-056",
+    type: "mcq",
+    multi: false,
+    topic: "Business Ethics",
+    text: "Business ethics primarily deals with:",
+    options: [
+      "Moral principles guiding business conduct",
+      "Financial performance standards",
+      "Legal compliance only",
+      "Marketing strategies"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-057",
+    type: "mcq",
+    multi: false,
+    topic: "Business Culture",
+    text: "What defines the 'personality' of an organization?",
+    options: [
+      "Business culture",
+      "Profit margins",
+      "Strategic goals",
+      "Financial reporting"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-058",
+    type: "mcq",
+    multi: false,
+    topic: "Career",
+    text: "For a job interview, business attire should be:",
+    options: [
+      "Professional and reflective of company culture",
+      "Casual and informal",
+      "Bright and flashy",
+      "Irrelevant to the context"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-059",
+    type: "mcq",
+    multi: false,
+    topic: "Networking",
+    text: "Networking primarily helps with:",
+    options: [
+      "Building and maintaining professional relationships",
+      "Increasing annual bonuses",
+      "Enhancing office gossip",
+      "Avoiding professional interactions"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-060",
+    type: "mcq",
+    multi: false,
+    topic: "Networking",
+    text: "Reciprocity in networking ensures:",
+    options: [
+      "Mutual support and value exchange",
+      "Exclusive personal benefits",
+      "Reducing professional interactions",
+      "Ignoring long-term relationships"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-061",
+    type: "mcq",
+    multi: false,
+    topic: "Industry",
+    text: "Which industry is highly dependent on efficient logistics and sourcing?",
+    options: [
+      "Manufacturing",
+      "Banking",
+      "Construction",
+      "Tourism"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-062",
+    type: "mcq",
+    multi: false,
+    topic: "Business",
+    text: "What is a primary advantage of partnerships?",
+    options: [
+      "Shared expertise",
+      "Minimal regulatory requirements",
+      "Public funding",
+      "Scalability"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-063",
+    type: "mcq",
+    multi: false,
+    topic: "Business Forms",
+    text: "What is a unique characteristic of sole proprietorships?",
+    options: [
+      "Owner has unlimited liability",
+      "Shared ownership",
+      "Separate legal entity",
+      "Publicly traded shares"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-064",
+    type: "mcq",
+    multi: false,
+    topic: "Industry",
+    text: "Which sector is subject to strict government regulations and quality controls?",
+    options: [
+      "Healthcare/Pharmaceutical",
+      "Retail",
+      "Construction",
+      "Transport"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-065",
+    type: "mcq",
+    multi: false,
+    topic: "Industry",
+    text: "Which sector is known for creating tangible goods?",
+    options: [
+      "Manufacturing",
+      "Healthcare",
+      "IT/Technology",
+      "Media"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-066",
+    type: "mcq",
+    multi: false,
+    topic: "Organization",
+    text: "Which structure emphasizes employee autonomy and collaboration?",
+    options: [
+      "Flat structure",
+      "Hierarchical structure",
+      "Divisional structure",
+      "Network structure"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-067",
+    type: "mcq",
+    multi: false,
+    topic: "Tourism",
+    text: "What is a significant feature of the Hungarian tourism sector?",
+    options: [
+      "Rich cultural heritage",
+      "Advanced electronics production",
+      "High investment in IT",
+      "Strong financial regulations"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-068",
+    type: "mcq",
+    multi: false,
+    topic: "Banking",
+    text: "What does the banking sector focus on?",
+    options: [
+      "Managing money, investments, and transactions",
+      "Building physical infrastructure",
+      "Producing tangible goods",
+      "Promoting seasonal tourism"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-069",
+    type: "mcq",
+    multi: false,
+    topic: "Public Relations",
+    text: "What is the focus of public relations (PR)?",
+    options: [
+      "Managing a company's image",
+      "Conducting market research",
+      "Overseeing legal compliance",
+      "Managing employee benefits"
+    ],
+    correct: [0]
+  },
+  {
+    id: "english-mcq-070",
+    type: "mcq",
+    multi: false,
+    topic: "Business Forms",
+    text: "Which of these is a common form for multinational corporations?",
+    options: [
+      "Public limited company (PLC)",
+      "Sole proprietorship",
+      "General partnership",
+      "Cooperatives"
+    ],
+    correct: [0]
+  },
+
+  {
+    id: "english-text-001",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A payment made to shareholders from a company’s profits.",
+    answer: "dividend"
+  },
+  {
+    id: "english-text-002",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "The natural rise and fall of economic activity over time, consisting of periods of expansion, peak, contraction, trough, and recovery.",
+    answer: "business cycle"
+  },
+  {
+    id: "english-text-003",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "The highest point of economic activity in the business cycle, just before growth slows down.",
+    answer: "peak"
+  },
+  {
+    id: "english-text-004",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "The difference between the cost of producing something and the price it is sold for, shown as a percentage of sales.",
+    answer: "profit margin"
+  },
+  {
+    id: "english-text-005",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "A situation where house prices rise rapidly to unsustainable levels, often followed by a sharp fall.",
+    answer: "housing bubble"
+  },
+  {
+    id: "english-text-006",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "The main financial institution of a country that manages monetary policy, issues currency, and controls interest rates.",
+    answer: "central bank"
+  },
+  {
+    id: "english-text-007",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "To increase suddenly and sharply.",
+    answer: "spike"
+  },
+  {
+    id: "english-text-008",
+    type: "text",
+    topic: "Macroeconomics Vocabulary",
+    text: "The total income earned by a country’s residents and businesses, including income from abroad, during a specific period.",
+    answer: "gni"
+  },
+  {
+    id: "english-text-009",
+    type: "text",
+    topic: "Macroeconomics Vocabulary",
+    text: "The gross domestic product of a country divided by its total population, used as an indicator of the average economic output per person.",
+    answer: "gdp per capita"
+  },
+  {
+    id: "english-text-010",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "How well an economy is doing, usually measured by indicators such as GDP, unemployment, inflation, and productivity.",
+    answer: "economic performance"
+  },
+  {
+    id: "english-text-011",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A fund that collects and invests money contributed by employees and employers to provide retirement income.",
+    answer: "pension fund"
+  },
+  {
+    id: "english-text-012",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "The first sale of a company’s shares to the public, allowing it to be traded on a stock exchange.",
+    answer: "initial public offering"
+  },
+  {
+    id: "english-text-013",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "A machine that allows bank customers to withdraw cash, check balances, or deposit money without visiting one of the bank’s branches.",
+    answer: "ATM"
+  },
+  {
+    id: "english-text-014",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "Anything of value that a person, company, or country owns, such as money, property, investments, or equipment.",
+    answer: "asset"
+  },
+  {
+    id: "english-text-015",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "A measure of a bank’s profitability, calculated as the difference between the interest earned on loans and the interest paid on deposits.",
+    answer: "net interest margin"
+  },
+  {
+    id: "english-text-016",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A person or organization that makes business or financial arrangements between companies or organizations that do not deal with each other directly.",
+    answer: "intermediary"
+  },
+  {
+    id: "english-text-017",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "The process by which businesses or governments secure funds from investors, often through issuing securities.",
+    answer: "capital raising"
+  },
+  {
+    id: "english-text-018",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "The US term for a current account; a bank account used for frequent, daily transactions, such as deposits, withdrawals, and payments.",
+    answer: "checking account"
+  },
+  {
+    id: "english-text-019",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "A bank that specialises in corporate finance, such as raising capital, managing mergers and acquisitions, and advising on complex financial transactions.",
+    answer: "merchant bank"
+  },
+  {
+    id: "english-text-020",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A person or organisation that takes money from a bank with the agreement to pay it back, usually with interest.",
+    answer: "borrower"
+  },
+  {
+    id: "english-text-021",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A way of raising capital by selling a company’s shares to investors in exchange for ownership.",
+    answer: "equity financing"
+  },
+  {
+    id: "english-text-022",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "To sell an asset or security in order to obtain money that can be used immediately.",
+    answer: "convert to cash"
+  },
+  {
+    id: "english-text-023",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "An investor who believes prices will fall and sells securities to profit from the decline.",
+    answer: "bear"
+  },
+  {
+    id: "english-text-024",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "An investment vehicle that pools money from many investors to buy a diversified portfolio of assets, such as stocks or bonds, managed by professionals.",
+    answer: "fund"
+  },
+  {
+    id: "english-text-025",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A fixed-income financial instrument in which an investor lends money to a company or government for a defined period, in exchange for regular interest payments and repayment of the principal at maturity.",
+    answer: "bond"
+  },
+  {
+    id: "english-text-026",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "The buying and selling of financial instruments such as stocks and bonds.",
+    answer: "trading of securities"
+  },
+  {
+    id: "english-text-027",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "The legal state of being unable to repay debts.",
+    answer: "bankruptcy"
+  },
+  {
+    id: "english-text-028",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A regulated marketplace where securities such as stocks and bonds are officially traded.",
+    answer: "stock exchange"
+  },
+  {
+    id: "english-text-029",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A type of share that represents direct ownership in a company, giving shareholders voting rights and the possibility of dividends.",
+    answer: "ordinary share"
+  },
+  {
+    id: "english-text-030",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A tradable financial instrument, such as a stock, bond, or option, that represents ownership or a debt agreement.",
+    answer: "security"
+  },
+  {
+    id: "english-text-031",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A location of a company that operates in a different place from its headquarters but is not a separate legal entity.",
+    answer: "branch office"
+  },
+  {
+    id: "english-text-032",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A skilled craftsperson who makes goods by hand, often using traditional methods.",
+    answer: "artisan"
+  },
+  {
+    id: "english-text-033",
+    type: "text",
+    topic: "Business Forms",
+    text: "A partnership with at least one partner having limited liability and not participating in management.",
+    answer: "limited partnership"
+  },
+  {
+    id: "english-text-034",
+    type: "text",
+    topic: "Business Forms",
+    text: "A business owned and operated by the government, often in key industries such as energy, transportation, or defence.",
+    answer: "state owned enterprise"
+  },
+  {
+    id: "english-text-035",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "A period when the economy slows, marked by falling output, rising unemployment, or reduced spending.",
+    answer: "economic downturn"
+  },
+  {
+    id: "english-text-036",
+    type: "text",
+    topic: "Business Forms",
+    text: "A business owned and managed by its members, who share profits and decision-making equally.",
+    answer: "cooperative"
+  },
+  {
+    id: "english-text-037",
+    type: "text",
+    topic: "Business Forms",
+    text: "A company controlled by another (the parent company), which holds a majority of its shares.",
+    answer: "subsidiary"
+  },
+  {
+    id: "english-text-038",
+    type: "text",
+    topic: "Business Forms",
+    text: "A legal business structure that protects owners from personal financial risk, limiting their liability to their investment.",
+    answer: "limited liability company"
+  },
+  {
+    id: "english-text-039",
+    type: "text",
+    topic: "Business Forms",
+    text: "An organisation that uses its surplus revenues to achieve social, cultural, or charitable goals rather than distributing profits to owners.",
+    answer: "non profit company"
+  },
+  {
+    id: "english-text-040",
+    type: "text",
+    topic: "Organization",
+    text: "An organisational model in which a company is divided into semi-autonomous units based e.g. on products, markets, or geography, each responsible for its own performance.",
+    answer: "divisional structure"
+  },
+  {
+    id: "english-text-041",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "Financial assistance provided by a government to support businesses or industries, usually to keep prices low or competitive.",
+    answer: "subsidy"
+  },
+  {
+    id: "english-text-042",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A city or region that serves as a centre for trade, business, and economic activity, often connecting merchants and markets from different areas.",
+    answer: "commercial hub"
+  },
+  {
+    id: "english-text-043",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "The process of reducing or removing barriers to international trade, such as tariffs, quotas, and restrictions, to allow goods and services to move more freely across borders.",
+    answer: "trade liberalisation"
+  },
+  {
+    id: "english-text-044",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "An international organisation established in 1995 that regulates global trade, resolves disputes, and promotes free trade among nations.",
+    answer: "World Trade Organization"
+  },
+  {
+    id: "english-text-045",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "A tax imposed on imported goods and services.",
+    answer: "tariff"
+  },
+  {
+    id: "english-text-046",
+    type: "text",
+    topic: "Sustainability Vocabulary",
+    text: "Goals set by governments or organisations to balance the amount of carbon dioxide emitted with an equivalent amount removed from the atmosphere, usually by a specific deadline.",
+    answer: "carbon neutral targets"
+  },
+  {
+    id: "english-text-047",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "The official power to make legal decisions and judgments in a particular area.",
+    answer: "jurisdiction"
+  },
+  {
+    id: "english-text-048",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "The large-scale manufacture of goods combined with widespread purchasing and use of these goods by the general public.",
+    answer: "mass production"
+  },
+  {
+    id: "english-text-049",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "The ability of a country, company, or individual to produce more of a good or service using the same amount of resources than others.",
+    answer: "absolute advantage"
+  },
+  {
+    id: "english-text-050",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "An abundance of valuable resources or possessions at one’s disposal, particularly money, land, or goods.",
+    answer: "wealth"
+  },
+  {
+    id: "english-text-051",
+    type: "text",
+    topic: "Marketing Vocabulary",
+    text: "An event introducing a new product to the market, often involving media and live demonstrations.",
+    answer: "product launch"
+  },
+  {
+    id: "english-text-052",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A hands-on training session designed to develop skills through practice and group activities.",
+    answer: "workshop"
+  },
+  {
+    id: "english-text-053",
+    type: "text",
+    topic: "HR Vocabulary",
+    text: "An initiative aimed at improving employees’ professional skills and growth.",
+    answer: "training and development program"
+  },
+  {
+    id: "english-text-054",
+    type: "text",
+    topic: "Negotiation Vocabulary",
+    text: "The most favourable option a negotiator can pursue if talks fail, representing the fallback plan.",
+    answer: "BATNA"
+  },
+  {
+    id: "english-text-055",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A formal educational meeting focusing on a specific topic, often led by an expert, typically with some practical orientation.",
+    answer: "seminar"
+  },
+  {
+    id: "english-text-056",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "An exclusive, small-scale meeting where senior leaders and experts discuss key strategic issues.",
+    answer: "executive roundtable"
+  },
+  {
+    id: "english-text-057",
+    type: "text",
+    topic: "Management Vocabulary",
+    text: "The process of distributing available resources such as time, money, or staff among competing projects or tasks to achieve organisational goals.",
+    answer: "resource allocation"
+  },
+  {
+    id: "english-text-058",
+    type: "text",
+    topic: "Communication Vocabulary",
+    text: "The act of convincing someone to do or believe something through reasoning, argument, or appeal.",
+    answer: "persuasion"
+  },
+  {
+    id: "english-text-059",
+    type: "text",
+    topic: "Culture Vocabulary",
+    text: "The degree to which less powerful members of organisations and institutions accept and expect unequal distribution of power.",
+    answer: "power distance"
+  },
+  {
+    id: "english-text-060",
+    type: "text",
+    topic: "Negotiation Vocabulary",
+    text: "Something given up or compromised in order to reach an agreement.",
+    answer: "concession"
+  },
+  {
+    id: "english-text-061",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "Money that must be spent to buy or do something; in business: all costs of operating a business.",
+    answer: "expense"
+  },
+  {
+    id: "english-text-062",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "A return to a better or normal state after a decline; in economics, the phase in the business cycle when an economy begins to grow again following a recession.",
+    answer: "recovery"
+  },
+  {
+    id: "english-text-063",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "The desire and ability of people to buy goods and services at different prices.",
+    answer: "demand"
+  },
+  {
+    id: "english-text-064",
+    type: "text",
+    topic: "Economics Vocabulary",
+    text: "How well an economy is doing, usually measured by indicators such as GDP, unemployment, inflation, and productivity.",
+    answer: "performance"
+  },
+  {
+    id: "english-text-065",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "The foreign currencies held by a country’s central bank to support its own currency and manage international payments.",
+    answer: "foreign exchange reserves"
+  },
+  {
+    id: "english-text-066",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "To officially produce and distribute a nation’s money, such as banknotes and coins.",
+    answer: "issue currency"
+  },
+  {
+    id: "english-text-067",
+    type: "text",
+    topic: "Banking Vocabulary",
+    text: "The British term for a checking account; a bank account designed for frequent, daily transactions, such as deposits, withdrawals, and payments.",
+    answer: "current account"
+  },
+  {
+    id: "english-text-068",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "A method of raising capital by borrowing money, usually through loans or bonds, with the obligation to repay it with interest.",
+    answer: "debt financing"
+  },
+  {
+    id: "english-text-069",
+    type: "text",
+    topic: "Finance Vocabulary",
+    text: "Behaviour or attitude of expecting prices in the market to rise.",
+    answer: "bullish"
+  },
+  {
+    id: "english-text-070",
+    type: "text",
+    topic: "Business Forms",
+    text: "A type of partnership where all partners share equal responsibility and unlimited liability.",
+    answer: "general partnership"
+  },
+  {
+    id: "english-text-071",
+    type: "text",
+    topic: "Employment Vocabulary",
+    text: "A person who works independently, offering services to multiple clients rather than being employed by one company.",
+    answer: "freelancer"
+  },
+  {
+    id: "english-text-072",
+    type: "text",
+    topic: "Business Forms",
+    text: "A business arrangement in which two or more parties agree to pool resources for a specific project or activity, sharing profits, risks, and control.",
+    answer: "joint venture"
+  },
+  {
+    id: "english-text-073",
+    type: "text",
+    topic: "Business Forms",
+    text: "A business owned and run by a single individual, who has full control and bears unlimited personal liability.",
+    answer: "sole proprietorship"
+  },
+  {
+    id: "english-text-074",
+    type: "text",
+    topic: "Business Forms",
+    text: "A company whose shares are traded on a stock exchange and can be bought by the general public, with shareholder liability limited to their investment.",
+    answer: "public limited company"
+  },
+  {
+    id: "english-text-075",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "Relating to business activities, especially banking or company registration, taking place outside a company’s home country, usually in order to reduce taxes or regulations.",
+    answer: "offshore"
+  },
+  {
+    id: "english-text-076",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "The worldwide system through which goods and services are produced, transported, and delivered, often involving multiple countries and stages of production.",
+    answer: "global supply chain"
+  },
+  {
+    id: "english-text-077",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "A newly established industry that is protected from international competition until it becomes competitive.",
+    answer: "infant industry"
+  },
+  {
+    id: "english-text-078",
+    type: "text",
+    topic: "Globalization Vocabulary",
+    text: "A trade agreement signed in 1993 between the United States, Canada, and Mexico that removed trade barriers and created one of the world’s largest free trade zones.",
+    answer: "NAFTA"
+  },
+  {
+    id: "english-text-079",
+    type: "text",
+    topic: "Negotiation Vocabulary",
+    text: "A competitive negotiation approach where one party’s gain is the other party’s loss.",
+    answer: "distributive negotiation"
+  },
+  {
+    id: "english-text-080",
+    type: "text",
+    topic: "Culture Vocabulary",
+    text: "A social and cultural orientation that prioritizes group goals, cooperation, and interdependence over individual desires or achievements.",
+    answer: "collectivism"
+  },
+  {
+    id: "english-text-081",
+    type: "text",
+    topic: "Business Vocabulary",
+    text: "A large formal meeting where professionals gather to discuss ideas, share knowledge, and network.",
+    answer: "conference"
+  }
+];
+
+
+const QUESTIONS = QUESTION_BANK;
+
+// ===========================================================================
+
+/* ======= KIS SEGÉDEK ======= */
+const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const pickRandom = (arr, n) => shuffle(arr).slice(0, n);
+
+
+function normalize(s){
+  return (s ?? "")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")              
+    .replace(/[\u0300-\u036f]/g, "") 
+    .replace(/\s+/g, " ");           
+}
+function levenshtein(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, () => Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0] = i;
+  for(let j=0;j<=n;j++) dp[0][j] = j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      const cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i-1][j] + 1,     // törlés
+        dp[i][j-1] + 1,     // beszúrás
+        dp[i-1][j-1] + cost // csere
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function isAcceptable(userInput, accepted){
+  const variants = Array.isArray(accepted) ? accepted : String(accepted).split("|");
+  const u = normalize(userInput);
+  return variants.some(v => {
+    const t = normalize(v);
+    if (!t) return false;
+    if (u === t) return true;
+    return levenshtein(u, t) <= 3; 
+  });
+}
+
+
+let currentSet = [];
+let score = 0;
+let answered = 0;
+
+/* ======= LocalStorage kulcsok ======= */
+const LS_MISTAKES = "gazdjog_mistakes_min_v1";
+const LS_SEEN     = "gazdjog_seen_min_v1";
+
+/* ======= Hibák tárolása ======= */
+function loadMistakes(){
+  try{
+    const raw = localStorage.getItem(LS_MISTAKES);
+    const parsed = raw ? JSON.parse(raw) : [];
+    const bankIds = new Set(QUESTIONS.map(q=>q.id));
+    return parsed.filter(q=>bankIds.has(q.id));
+  }catch(e){ return []; }
+}
+function saveMistakes(list){ localStorage.setItem(LS_MISTAKES, JSON.stringify(list)); }
+function removeMistake(id){
+  const list = loadMistakes().filter(x => x.id !== id);
+  saveMistakes(list);
+}
+function addMistake(q){
+  const list = loadMistakes();
+  if(!list.find(x=>x.id===q.id)){ list.push(q); saveMistakes(list); }
+}
+function clearMistakes(){ saveMistakes([]); }
+
+/* ======= Seen (látott kérdések) ======= */
+function loadSeen(){
+  try{
+    const raw = localStorage.getItem(LS_SEEN);
+    const arr = raw ? JSON.parse(raw) : [];
+    const bankIds = new Set(QUESTIONS.map(q=>q.id));
+    return new Set(arr.filter(id => bankIds.has(id)));
+  }catch(e){ return new Set(); }
+}
+function saveSeen(seenSet){
+  localStorage.setItem(LS_SEEN, JSON.stringify([...seenSet]));
+}
+function addSeen(ids){
+  const seen = loadSeen();
+  ids.forEach(id => seen.add(id));
+  saveSeen(seen);
+}
+function clearSeen(){ localStorage.removeItem(LS_SEEN); }
+
+/* ======= UI elemek ======= */
+const testContainer = document.getElementById('testContainer');
+const resultCard = document.getElementById('resultCard');
+const scoreLine = document.getElementById('scoreLine');
+const detailLine = document.getElementById('detailLine');
+
+const bulkCard = document.getElementById('bulkCard');
+
+const mistakesCard = document.getElementById('mistakesCard');
+const mistakesMeta = document.getElementById('mistakesMeta');
+const mistakesList = document.getElementById('mistakesList');
+
+const unseenCard = document.getElementById('unseenCard');
+const unseenMeta = document.getElementById('unseenMeta');
+const unseenList = document.getElementById('unseenList');
+
+/* ======= Helper: Hibaszámláló frissítése a gombon ======= */
+function updateResultMistakesBtn(){
+  const n = loadMistakes().length;
+  const btn1 = document.getElementById('resultPracticeMistakesBtn');
+  const btn2 = document.getElementById('practiceMistakesBtn');
+  if (btn1) btn1.textContent = `Hibáim tanulása (${n})`;
+  if (btn2) btn2.textContent = `Hibáim tanulása (10 véletlen kérdés)`;
+}
+
+/* ======= Teszt render ======= */
+function renderTest(questions){
+  bulkCard?.classList.remove('hidden');
+  testContainer.innerHTML = "";
+
+  // lapok elrejtése
+  resultCard.classList.add('hidden');
+  mistakesCard.classList.add('hidden');
+  unseenCard.classList.add('hidden');
+  document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+
+  score = 0; answered = 0;
+  currentSet = questions.slice();
+
+  questions.forEach((q, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `q-${q.id}`;
+
+    const header = document.createElement('div');
+    header.innerHTML = `<div class="row" style="justify-content:space-between">
+      <div><span class="pill">${idx+1}. kérdés</span> <span class="tag">${q.topic||""}</span></div>
+      <div class="meta">${q.type==="mcq" ? (q.multi? "Több válasz lehetséges":"Egy válasz") : "Kitöltős"}</div>
+    </div>`;
+    card.appendChild(header);
+
+    const qDiv = document.createElement('div');
+    qDiv.className = 'q';
+    qDiv.textContent = q.text;
+    card.appendChild(qDiv);
+
+    const answersWrap = document.createElement('div');
+    if(q.type === "mcq"){
+      (q.options||[]).forEach((opt, i)=>{
+        const optDiv = document.createElement('label');
+        optDiv.className = 'opt';
+        const input = document.createElement('input');
+        input.type = q.multi ? 'checkbox' : 'radio';
+        input.name = `ans-${q.id}`;
+        input.value = i;
+        optDiv.appendChild(input);
+        const span = document.createElement('span');
+        span.textContent = " " + ["A)","B)","C)","D)","E)","F)"][i] + " " + opt;
+        optDiv.appendChild(span);
+        answersWrap.appendChild(optDiv);
+      });
+    } else {
+      const input = document.createElement('input');
+      input.type = "text";
+      input.placeholder = "Írd be a megoldást…";
+      input.id = `fill-${q.id}`;
+      answersWrap.appendChild(input);
+    }
+    card.appendChild(answersWrap);
+
+    const footer = document.createElement('div');
+    footer.className = 'footer';
+    footer.innerHTML = `<div class="meta" id="fb-${q.id}"></div>
+      <div class="row">
+        <button class="btn small ghost" data-action="show-solution" data-qid="${q.id}">Megoldás mutatása</button>
+        <button class="btn small" data-action="check" data-qid="${q.id}">Ellenőrzés</button>
+      </div>`;
+    card.appendChild(footer);
+
+    testContainer.appendChild(card);
+  });
+
+  updateResultMistakesBtn();
+}
+
+/* ======= Kártya gombjai – egyszeri delegálás ======= */
+if (!window.__cardsBound){
+  testContainer.addEventListener('click', (ev)=>{
+    const btn = ev.target.closest('button[data-action]');
+    if(!btn) return;
+    const qid = btn.getAttribute('data-qid');
+    const action = btn.getAttribute('data-action');
+    const q = currentSet.find(x=>x.id===qid);
+    if(!q) return;
+
+    if(action === "check"){
+      handleCheck(q);
+    }else if(action === "show-solution"){
+      showSolution(q, true);
+    }
+  });
+  window.__cardsBound = true;
+}
+
+/* ======= Ellenőrzés / Megoldás ======= */
+function handleCheck(q){
+  addSeen([q.id]);
+  const card = document.getElementById(`q-${q.id}`);
+  const fb = document.getElementById(`fb-${q.id}`);
+  let isCorrect = false;
+
+  if(q.type==="mcq"){
+    const inputs = [...card.querySelectorAll('input[name="ans-'+q.id+'"]')];
+    const sel = inputs.filter(i=>i.checked).map(i=>parseInt(i.value,10));
+    inputs.forEach(i=>{
+      const wrap = i.parentElement;
+      const idx = parseInt(i.value,10);
+      const good = (q.correct||[]).includes(idx);
+      wrap.classList.remove('correct','incorrect');
+      if(good) wrap.classList.add('correct');
+      if(i.checked && !good) wrap.classList.add('incorrect');
+      i.disabled = true;
+    });
+    sel.sort((a,b)=>a-b);
+    const corr = [...(q.correct||[])].sort((a,b)=>a-b);
+    isCorrect = JSON.stringify(sel)===JSON.stringify(corr);
+
+  }else{
+    const input = card.querySelector('input[type="text"]');
+    const given = normalize(input.value);
+    const ok = (q.correct||[]).some(acc=>normalize(acc)===given);
+
+    isCorrect = ok;
+    input.disabled = true;
+    if(ok){
+      input.style.borderColor = "rgba(16,185,129,.8)";
+      input.style.background = "rgba(16,185,129,.08)";
+    }else{
+      input.style.borderColor = "rgba(239,68,68,.8)";
+      input.style.background = "rgba(239,68,68,.08)";
+      const sol = "Megoldás: " + (q.correct||[]).join("  |  ");
+      const solDiv = document.createElement('div');
+      solDiv.className = 'meta';
+      solDiv.textContent = sol;
+      input.insertAdjacentElement('afterend', solDiv);
+    }
+  }
+
+  fb.textContent = isCorrect ? "✅ Helyes válasz! +1 pont" : "❌ Nem teljesen jó.";
+  if(!card.dataset.done){
+    answered++;
+    if(isCorrect){ score++; removeMistake(q.id); }
+    else{ addMistake(q); }
+    card.dataset.done = "1";
+    updateResultMistakesBtn();
+    if(!mistakesCard.classList.contains('hidden')) renderMistakesView();
+  }
+
+  if(answered === currentSet.length) finalizeScore();
+}
+
+function showSolution(q){
+  addSeen([q.id]);
+  const card = document.getElementById(`q-${q.id}`);
+  const fb = document.getElementById(`fb-${q.id}`);
+
+  if(q.type==="mcq"){
+    const inputs = [...card.querySelectorAll('input[name="ans-'+q.id+'"]')];
+    inputs.forEach(i=>{
+      const wrap = i.parentElement;
+      const idx = parseInt(i.value,10);
+      const good = (q.correct||[]).includes(idx);
+      wrap.classList.remove('correct','incorrect');
+      if(good) wrap.classList.add('correct');
+      i.disabled = true;
+    });
+    fb.textContent = "Megoldás kiemelve zölddel.";
+  } else {
+    const input = card.querySelector('input[type="text"]');
+    input.disabled = true;
+    const sol = "Megoldás: " + (q.correct||[]).join("  |  ");
+    if(!card.querySelector('.footer .meta + .meta')){
+      const solDiv = document.createElement('div');
+      solDiv.className = 'meta';
+      solDiv.textContent = sol;
+      input.insertAdjacentElement('afterend', solDiv);
+    }
+    fb.textContent = "Megoldás megjelenítve.";
+  }
+
+  if(!card.dataset.done){
+    answered++;
+    card.dataset.done = "1";
+  }
+  if(answered === currentSet.length) finalizeScore();
+}
+
+function finalizeScore(){
+  resultCard.classList.remove('hidden');
+  const pct = Math.round((score/currentSet.length)*100);
+  scoreLine.textContent = `Pontszám: ${score} / ${currentSet.length}`;
+  detailLine.textContent = `Teljesítmény: ${pct}% • Helyes válasz után zöld keret, hibás után piros.`;
+}
+
+/* ======= Felső gombok – egyszeri kötés ======= */
+if (!window.__topBtnsBound){
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    const n = Math.min(20, QUESTIONS.length);
+    renderTest(pickRandom(QUESTIONS, n));
+  });
+
+  document.getElementById('showAllBtn').addEventListener('click', ()=>{
+    renderTest([...QUESTIONS]);
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    const n = Math.min(20, QUESTIONS.length);
+    renderTest(pickRandom(QUESTIONS, n));
+  });
+
+  document.getElementById('reviewBtn').addEventListener('click', ()=>{
+    currentSet.forEach(q=>showSolution(q,true));
+  });
+
+  const mistakesTabBtn = document.getElementById('mistakesTabBtn');
+  mistakesTabBtn.addEventListener('click', ()=>{
+    renderMistakesView();
+    mistakesCard.classList.remove('hidden');
+    unseenCard.classList.add('hidden');
+    resultCard.classList.add('hidden');
+    bulkCard.classList.add('hidden');
+    testContainer.innerHTML = "";
+    document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+    mistakesTabBtn.classList.add('active');
+  });
+
+  const unseenTabBtn = document.getElementById('unseenTabBtn');
+  unseenTabBtn.addEventListener('click', ()=>{
+    renderUnseenView();
+    unseenCard.classList.remove('hidden');
+    mistakesCard.classList.add('hidden');
+    resultCard.classList.add('hidden');
+    bulkCard.classList.add('hidden');
+    testContainer.innerHTML = "";
+    document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+    unseenTabBtn.classList.add('active');
+  });
+
+  // Csávoka fül – CSAK a Csávoka-bankból származó kérdések
+ 
+}
+
+/* ======= Hibáim lap ======= */
+function renderMistakesView(){
+  const list = loadMistakes();
+  mistakesList.innerHTML = "";
+  mistakesMeta.textContent = list.length
+    ? `Összes rögzített hibád: ${list.length} db.`
+    : "Még nincs rögzített hibád.";
+  list.forEach((q, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic||""}</em> — ${q.text}`;
+    mistakesList.appendChild(div);
+  });
+  updateResultMistakesBtn();
+}
+
+document.getElementById('practiceMistakes10').addEventListener('click', ()=>{
+  const list = loadMistakes();
+  if(list.length===0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
+  renderTest(pickRandom(list, Math.min(10, list.length)));
+});
+
+document.getElementById('practiceMistakes20').addEventListener('click', ()=>{
+  const list = loadMistakes();
+  if(list.length===0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
+  renderTest(pickRandom(list, Math.min(20, list.length)));
+});
+
+document.getElementById('clearMistakesBtn').addEventListener('click', ()=>{
+  if(confirm("Biztosan törlöd az összes rögzített hibát?")){
+    clearMistakes();
+    renderMistakesView();
+  }
+});
+
+/* ======= Gyors gyakorló gombok a kártyán ======= */
+document.getElementById('practiceMistakesBtn').addEventListener('click', ()=>{
+  const mistakes = loadMistakes();
+  if(mistakes.length === 0){
+    alert("Még nincsenek rögzített hibáid. Oldj meg néhány kérdést előbb!");
+    return;
+  }
+  renderTest(pickRandom(mistakes, Math.min(10, mistakes.length)));
+});
+
+document.getElementById('practiceMistakesAll').addEventListener('click', ()=>{
+  const list = loadMistakes();
+  if (list.length === 0) {
+    alert("Nincs még hibád. Oldj meg pár kérdést előbb!");
+    return;
+  }
+  renderTest([...list]);
+});
+
+document.getElementById('resultPracticeMistakesBtn').addEventListener('click', ()=>{
+  const mistakes = loadMistakes();
+  if(mistakes.length === 0){
+    alert("Még nincsenek rögzített hibáid. Oldj meg pár kérdést előbb!");
+    return;
+  }
+  renderTest(pickRandom(mistakes, Math.min(20, mistakes.length)));
+});
+
+/* ======= UNSEEN (még nem tanult) lap ======= */
+function getUnseen(){
+  const seen = loadSeen();
+  return QUESTIONS.filter(q => !seen.has(q.id));
+}
+function renderUnseenView(){
+  const unseen = getUnseen();
+  unseenList.innerHTML = "";
+  unseenMeta.textContent = unseen.length
+    ? `Még nem tanult kérdések száma: ${unseen.length} db.`
+    : "Gratulálok! Minden kérdést legalább egyszer láttál.";
+  unseen.forEach((q, idx) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic||""}</em> — ${q.text}`;
+    unseenList.appendChild(div);
+  });
+}
+
+document.getElementById('practiceUnseen10').addEventListener('click', ()=>{
+  const unseen = getUnseen();
+  if (unseen.length===0){ alert("Nincs több új (nem látott) kérdés."); return; }
+  renderTest(pickRandom(unseen, Math.min(10, unseen.length)));
+});
+
+document.getElementById('practiceUnseen20').addEventListener('click', ()=>{
+  const unseen = getUnseen();
+  if (unseen.length===0){ alert("Nincs több új (nem látott) kérdés."); return; }
+  renderTest(pickRandom(unseen, Math.min(80, unseen.length)));
+});
+
+document.getElementById('clearSeenBtn').addEventListener('click', ()=>{
+  if (confirm("Törlöd a 'már látott' kérdések listáját?")){
+    clearSeen();
+    renderUnseenView();
+  }
+});
+
+/* ======= Init ======= */
+updateResultMistakesBtn();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
