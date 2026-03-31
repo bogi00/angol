@@ -70,19 +70,17 @@
     </div>
   </div>
 
-  <!-- Hibáim -->
   <div id="mistakesCard" class="card hidden">
     <div class="h2">Hibáim – gyakorló lista</div>
     <div class="meta" id="mistakesMeta">Még nincs rögzített hibád.</div>
     <div class="row" style="margin:10px 0">
       <button id="practiceMistakes10" class="btn" type="button">Gyakorlás a hibáimból (10)</button>
-      <button id="practiceMistakes20" class="btn" type="button">Gyakorlás a hibáimból (30)</button>
+      <button id="practiceMistakes20" class="btn" type="button">Gyakorlás a hibáimból (20)</button>
       <button id="clearMistakesBtn" class="btn ghost" type="button">Hibalista törlése</button>
     </div>
     <div id="mistakesList"></div>
   </div>
 
-  <!-- Még nem tanult -->
   <div id="unseenCard" class="card hidden">
     <div class="h2">Még nem tanult kérdéseim</div>
     <div class="meta" id="unseenMeta">Betöltés…</div>
@@ -96,7 +94,6 @@
 </div>
 
 <script>
- 
 const QUESTION_BANK = [
   {
     id: "english-mcq-001",
@@ -1649,24 +1646,23 @@ const QUESTION_BANK = [
 ];
 
 
+
 const QUESTIONS = QUESTION_BANK;
 
-// ===========================================================================
-
-/* ======= KIS SEGÉDEK ======= */
-const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+/* ======= SEGÉDEK ======= */
+const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 const pickRandom = (arr, n) => shuffle(arr).slice(0, n);
-
 
 function normalize(s){
   return (s ?? "")
     .toString()
     .trim()
     .toLowerCase()
-    .normalize("NFD")              
-    .replace(/[\u0300-\u036f]/g, "") 
-    .replace(/\s+/g, " ");           
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
 }
+
 function levenshtein(a, b){
   const m = a.length, n = b.length;
   const dp = Array.from({length: m+1}, () => Array(n+1).fill(0));
@@ -1676,9 +1672,9 @@ function levenshtein(a, b){
     for(let j=1;j<=n;j++){
       const cost = a[i-1] === b[j-1] ? 0 : 1;
       dp[i][j] = Math.min(
-        dp[i-1][j] + 1,     // törlés
-        dp[i][j-1] + 1,     // beszúrás
-        dp[i-1][j-1] + cost // csere
+        dp[i-1][j] + 1,
+        dp[i][j-1] + 1,
+        dp[i-1][j-1] + cost
       );
     }
   }
@@ -1686,26 +1682,31 @@ function levenshtein(a, b){
 }
 
 function isAcceptable(userInput, accepted){
-  const variants = Array.isArray(accepted) ? accepted : String(accepted).split("|");
+  const variants = Array.isArray(accepted) ? accepted : [accepted];
   const u = normalize(userInput);
   return variants.some(v => {
     const t = normalize(v);
     if (!t) return false;
     if (u === t) return true;
-    return levenshtein(u, t) <= 3; 
+    return levenshtein(u, t) <= 1;
   });
 }
 
+function getTextAnswers(q){
+  if (Array.isArray(q.answer)) return q.answer;
+  if (typeof q.answer === "string") return [q.answer];
+  return [];
+}
 
+/* ======= ÁLLAPOT ======= */
 let currentSet = [];
 let score = 0;
 let answered = 0;
 
-/* ======= LocalStorage kulcsok ======= */
+/* ======= LocalStorage ======= */
 const LS_MISTAKES = "gazdjog_mistakes_min_v1";
 const LS_SEEN     = "gazdjog_seen_min_v1";
 
-/* ======= Hibák tárolása ======= */
 function loadMistakes(){
   try{
     const raw = localStorage.getItem(LS_MISTAKES);
@@ -1725,7 +1726,6 @@ function addMistake(q){
 }
 function clearMistakes(){ saveMistakes([]); }
 
-/* ======= Seen (látott kérdések) ======= */
 function loadSeen(){
   try{
     const raw = localStorage.getItem(LS_SEEN);
@@ -1744,7 +1744,7 @@ function addSeen(ids){
 }
 function clearSeen(){ localStorage.removeItem(LS_SEEN); }
 
-/* ======= UI elemek ======= */
+/* ======= UI ======= */
 const testContainer = document.getElementById('testContainer');
 const resultCard = document.getElementById('resultCard');
 const scoreLine = document.getElementById('scoreLine');
@@ -1760,7 +1760,6 @@ const unseenCard = document.getElementById('unseenCard');
 const unseenMeta = document.getElementById('unseenMeta');
 const unseenList = document.getElementById('unseenList');
 
-/* ======= Helper: Hibaszámláló frissítése a gombon ======= */
 function updateResultMistakesBtn(){
   const n = loadMistakes().length;
   const btn1 = document.getElementById('resultPracticeMistakesBtn');
@@ -1769,18 +1768,18 @@ function updateResultMistakesBtn(){
   if (btn2) btn2.textContent = `Hibáim tanulása (10 véletlen kérdés)`;
 }
 
-/* ======= Teszt render ======= */
+/* ======= TESZT RENDER ======= */
 function renderTest(questions){
   bulkCard?.classList.remove('hidden');
   testContainer.innerHTML = "";
 
-  // lapok elrejtése
   resultCard.classList.add('hidden');
   mistakesCard.classList.add('hidden');
   unseenCard.classList.add('hidden');
   document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
 
-  score = 0; answered = 0;
+  score = 0;
+  answered = 0;
   currentSet = questions.slice();
 
   questions.forEach((q, idx)=>{
@@ -1791,7 +1790,7 @@ function renderTest(questions){
     const header = document.createElement('div');
     header.innerHTML = `<div class="row" style="justify-content:space-between">
       <div><span class="pill">${idx+1}. kérdés</span> <span class="tag">${q.topic||""}</span></div>
-      <div class="meta">${q.type==="mcq" ? (q.multi? "Több válasz lehetséges":"Egy válasz") : "Kitöltős"}</div>
+      <div class="meta">${q.type==="mcq" ? (q.multi ? "Több válasz lehetséges" : "Egy válasz") : "Kitöltős"}</div>
     </div>`;
     card.appendChild(header);
 
@@ -1801,18 +1800,23 @@ function renderTest(questions){
     card.appendChild(qDiv);
 
     const answersWrap = document.createElement('div');
+
     if(q.type === "mcq"){
-      (q.options||[]).forEach((opt, i)=>{
+      (q.options || []).forEach((opt, i)=>{
         const optDiv = document.createElement('label');
         optDiv.className = 'opt';
+
         const input = document.createElement('input');
         input.type = q.multi ? 'checkbox' : 'radio';
         input.name = `ans-${q.id}`;
         input.value = i;
+
         optDiv.appendChild(input);
+
         const span = document.createElement('span');
         span.textContent = " " + ["A)","B)","C)","D)","E)","F)"][i] + " " + opt;
         optDiv.appendChild(span);
+
         answersWrap.appendChild(optDiv);
       });
     } else {
@@ -1822,15 +1826,18 @@ function renderTest(questions){
       input.id = `fill-${q.id}`;
       answersWrap.appendChild(input);
     }
+
     card.appendChild(answersWrap);
 
     const footer = document.createElement('div');
     footer.className = 'footer';
-    footer.innerHTML = `<div class="meta" id="fb-${q.id}"></div>
+    footer.innerHTML = `
+      <div class="meta" id="fb-${q.id}"></div>
       <div class="row">
         <button class="btn small ghost" data-action="show-solution" data-qid="${q.id}">Megoldás mutatása</button>
         <button class="btn small" data-action="check" data-qid="${q.id}">Ellenőrzés</button>
-      </div>`;
+      </div>
+    `;
     card.appendChild(footer);
 
     testContainer.appendChild(card);
@@ -1839,11 +1846,12 @@ function renderTest(questions){
   updateResultMistakesBtn();
 }
 
-/* ======= Kártya gombjai – egyszeri delegálás ======= */
+/* ======= GOMBOK A KÁRTYÁN ======= */
 if (!window.__cardsBound){
   testContainer.addEventListener('click', (ev)=>{
     const btn = ev.target.closest('button[data-action]');
     if(!btn) return;
+
     const qid = btn.getAttribute('data-qid');
     const action = btn.getAttribute('data-action');
     const q = currentSet.find(x=>x.id===qid);
@@ -1852,95 +1860,116 @@ if (!window.__cardsBound){
     if(action === "check"){
       handleCheck(q);
     }else if(action === "show-solution"){
-      showSolution(q, true);
+      showSolution(q);
     }
   });
   window.__cardsBound = true;
 }
 
-/* ======= Ellenőrzés / Megoldás ======= */
+/* ======= ELLENŐRZÉS ======= */
 function handleCheck(q){
   addSeen([q.id]);
   const card = document.getElementById(`q-${q.id}`);
   const fb = document.getElementById(`fb-${q.id}`);
   let isCorrect = false;
 
-  if(q.type==="mcq"){
-    const inputs = [...card.querySelectorAll('input[name="ans-'+q.id+'"]')];
+  if(q.type === "mcq"){
+    const inputs = [...card.querySelectorAll(`input[name="ans-${q.id}"]`)];
     const sel = inputs.filter(i=>i.checked).map(i=>parseInt(i.value,10));
+
     inputs.forEach(i=>{
       const wrap = i.parentElement;
       const idx = parseInt(i.value,10);
-      const good = (q.correct||[]).includes(idx);
+      const good = (q.correct || []).includes(idx);
+
       wrap.classList.remove('correct','incorrect');
       if(good) wrap.classList.add('correct');
       if(i.checked && !good) wrap.classList.add('incorrect');
       i.disabled = true;
     });
+
     sel.sort((a,b)=>a-b);
-    const corr = [...(q.correct||[])].sort((a,b)=>a-b);
-    isCorrect = JSON.stringify(sel)===JSON.stringify(corr);
+    const corr = [...(q.correct || [])].sort((a,b)=>a-b);
+    isCorrect = JSON.stringify(sel) === JSON.stringify(corr);
 
-  }else{
+  } else {
     const input = card.querySelector('input[type="text"]');
-    const given = normalize(input.value);
-    const ok = (q.correct||[]).some(acc=>normalize(acc)===given);
+    const given = input.value;
+    const accepted = getTextAnswers(q);
 
-    isCorrect = ok;
+    isCorrect = isAcceptable(given, accepted);
     input.disabled = true;
-    if(ok){
+
+    if(isCorrect){
       input.style.borderColor = "rgba(16,185,129,.8)";
       input.style.background = "rgba(16,185,129,.08)";
-    }else{
+    } else {
       input.style.borderColor = "rgba(239,68,68,.8)";
       input.style.background = "rgba(239,68,68,.08)";
-      const sol = "Megoldás: " + (q.correct||[]).join("  |  ");
-      const solDiv = document.createElement('div');
-      solDiv.className = 'meta';
-      solDiv.textContent = sol;
-      input.insertAdjacentElement('afterend', solDiv);
+
+      if(!card.querySelector('.text-solution')){
+        const solDiv = document.createElement('div');
+        solDiv.className = 'meta text-solution';
+        solDiv.style.marginTop = "8px";
+        solDiv.textContent = "Megoldás: " + accepted.join(" | ");
+        input.insertAdjacentElement('afterend', solDiv);
+      }
     }
   }
 
   fb.textContent = isCorrect ? "✅ Helyes válasz! +1 pont" : "❌ Nem teljesen jó.";
+
   if(!card.dataset.done){
     answered++;
-    if(isCorrect){ score++; removeMistake(q.id); }
-    else{ addMistake(q); }
+    if(isCorrect){
+      score++;
+      removeMistake(q.id);
+    } else {
+      addMistake(q);
+    }
     card.dataset.done = "1";
     updateResultMistakesBtn();
+
     if(!mistakesCard.classList.contains('hidden')) renderMistakesView();
   }
 
   if(answered === currentSet.length) finalizeScore();
 }
 
+/* ======= MEGOLDÁS MUTATÁSA ======= */
 function showSolution(q){
   addSeen([q.id]);
   const card = document.getElementById(`q-${q.id}`);
   const fb = document.getElementById(`fb-${q.id}`);
 
-  if(q.type==="mcq"){
-    const inputs = [...card.querySelectorAll('input[name="ans-'+q.id+'"]')];
+  if(q.type === "mcq"){
+    const inputs = [...card.querySelectorAll(`input[name="ans-${q.id}"]`)];
     inputs.forEach(i=>{
       const wrap = i.parentElement;
       const idx = parseInt(i.value,10);
-      const good = (q.correct||[]).includes(idx);
+      const good = (q.correct || []).includes(idx);
+
       wrap.classList.remove('correct','incorrect');
       if(good) wrap.classList.add('correct');
       i.disabled = true;
     });
+
     fb.textContent = "Megoldás kiemelve zölddel.";
+
   } else {
     const input = card.querySelector('input[type="text"]');
+    const accepted = getTextAnswers(q);
+
     input.disabled = true;
-    const sol = "Megoldás: " + (q.correct||[]).join("  |  ");
-    if(!card.querySelector('.footer .meta + .meta')){
+
+    if(!card.querySelector('.text-solution')){
       const solDiv = document.createElement('div');
-      solDiv.className = 'meta';
-      solDiv.textContent = sol;
+      solDiv.className = 'meta text-solution';
+      solDiv.style.marginTop = "8px";
+      solDiv.textContent = "Megoldás: " + accepted.join(" | ");
       input.insertAdjacentElement('afterend', solDiv);
     }
+
     fb.textContent = "Megoldás megjelenítve.";
   }
 
@@ -1948,17 +1977,19 @@ function showSolution(q){
     answered++;
     card.dataset.done = "1";
   }
+
   if(answered === currentSet.length) finalizeScore();
 }
 
+/* ======= EREDMÉNY ======= */
 function finalizeScore(){
   resultCard.classList.remove('hidden');
-  const pct = Math.round((score/currentSet.length)*100);
+  const pct = currentSet.length ? Math.round((score/currentSet.length)*100) : 0;
   scoreLine.textContent = `Pontszám: ${score} / ${currentSet.length}`;
   detailLine.textContent = `Teljesítmény: ${pct}% • Helyes válasz után zöld keret, hibás után piros.`;
 }
 
-/* ======= Felső gombok – egyszeri kötés ======= */
+/* ======= FELSŐ GOMBOK ======= */
 if (!window.__topBtnsBound){
   document.getElementById('startBtn').addEventListener('click', ()=>{
     const n = Math.min(20, QUESTIONS.length);
@@ -1975,7 +2006,7 @@ if (!window.__topBtnsBound){
   });
 
   document.getElementById('reviewBtn').addEventListener('click', ()=>{
-    currentSet.forEach(q=>showSolution(q,true));
+    currentSet.forEach(q => showSolution(q));
   });
 
   const mistakesTabBtn = document.getElementById('mistakesTabBtn');
@@ -2002,35 +2033,36 @@ if (!window.__topBtnsBound){
     unseenTabBtn.classList.add('active');
   });
 
-  // Csávoka fül – CSAK a Csávoka-bankból származó kérdések
- 
+  window.__topBtnsBound = true;
 }
 
-/* ======= Hibáim lap ======= */
+/* ======= HIBÁIM ======= */
 function renderMistakesView(){
   const list = loadMistakes();
   mistakesList.innerHTML = "";
   mistakesMeta.textContent = list.length
     ? `Összes rögzített hibád: ${list.length} db.`
     : "Még nincs rögzített hibád.";
+
   list.forEach((q, idx)=>{
     const div = document.createElement('div');
     div.className = 'list-item';
-    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic||""}</em> — ${q.text}`;
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ""}</em> — ${q.text}`;
     mistakesList.appendChild(div);
   });
+
   updateResultMistakesBtn();
 }
 
 document.getElementById('practiceMistakes10').addEventListener('click', ()=>{
   const list = loadMistakes();
-  if(list.length===0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
+  if(list.length === 0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
   renderTest(pickRandom(list, Math.min(10, list.length)));
 });
 
 document.getElementById('practiceMistakes20').addEventListener('click', ()=>{
   const list = loadMistakes();
-  if(list.length===0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
+  if(list.length === 0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
   renderTest(pickRandom(list, Math.min(20, list.length)));
 });
 
@@ -2041,7 +2073,6 @@ document.getElementById('clearMistakesBtn').addEventListener('click', ()=>{
   }
 });
 
-/* ======= Gyors gyakorló gombok a kártyán ======= */
 document.getElementById('practiceMistakesBtn').addEventListener('click', ()=>{
   const mistakes = loadMistakes();
   if(mistakes.length === 0){
@@ -2053,7 +2084,7 @@ document.getElementById('practiceMistakesBtn').addEventListener('click', ()=>{
 
 document.getElementById('practiceMistakesAll').addEventListener('click', ()=>{
   const list = loadMistakes();
-  if (list.length === 0) {
+  if(list.length === 0){
     alert("Nincs még hibád. Oldj meg pár kérdést előbb!");
     return;
   }
@@ -2069,34 +2100,36 @@ document.getElementById('resultPracticeMistakesBtn').addEventListener('click', (
   renderTest(pickRandom(mistakes, Math.min(20, mistakes.length)));
 });
 
-/* ======= UNSEEN (még nem tanult) lap ======= */
+/* ======= UNSEEN ======= */
 function getUnseen(){
   const seen = loadSeen();
   return QUESTIONS.filter(q => !seen.has(q.id));
 }
+
 function renderUnseenView(){
   const unseen = getUnseen();
   unseenList.innerHTML = "";
   unseenMeta.textContent = unseen.length
     ? `Még nem tanult kérdések száma: ${unseen.length} db.`
     : "Gratulálok! Minden kérdést legalább egyszer láttál.";
+
   unseen.forEach((q, idx) => {
     const div = document.createElement('div');
     div.className = 'list-item';
-    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic||""}</em> — ${q.text}`;
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ""}</em> — ${q.text}`;
     unseenList.appendChild(div);
   });
 }
 
 document.getElementById('practiceUnseen10').addEventListener('click', ()=>{
   const unseen = getUnseen();
-  if (unseen.length===0){ alert("Nincs több új (nem látott) kérdés."); return; }
+  if (unseen.length === 0){ alert("Nincs több új kérdés."); return; }
   renderTest(pickRandom(unseen, Math.min(10, unseen.length)));
 });
 
 document.getElementById('practiceUnseen20').addEventListener('click', ()=>{
   const unseen = getUnseen();
-  if (unseen.length===0){ alert("Nincs több új (nem látott) kérdés."); return; }
+  if (unseen.length === 0){ alert("Nincs több új kérdés."); return; }
   renderTest(pickRandom(unseen, Math.min(80, unseen.length)));
 });
 
@@ -2107,17 +2140,8 @@ document.getElementById('clearSeenBtn').addEventListener('click', ()=>{
   }
 });
 
-/* ======= Init ======= */
+/* ======= INIT ======= */
 updateResultMistakesBtn();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
