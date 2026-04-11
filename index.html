@@ -1938,7 +1938,7 @@ const QUESTION_BANK = [
     answer: ["dollarization", "dollarisation"]
   }
 ];
-const QUESTIONS = QUESTION_BANK;
+const QUESTIONS = QUESTION_BANK.filter(q => q.type === "mcq");
 
 /* ======= SEGÉDEK ======= */
 const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
