@@ -3,79 +3,156 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Angolt</title>
+<title>Angol tanuló app</title>
 <style>
   :root{
     --bg:#0f172a; --card:#111827; --muted:#9ca3af; --ok:#10b981; --err:#ef4444; --pri:#60a5fa;
-    --ink:#e5e7eb; --ink2:#cbd5e1; --chip:#1f2937;
+    --ink:#e5e7eb; --ink2:#cbd5e1; --chip:#1f2937; --warn:#f59e0b;
   }
+  *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-  .wrap{max-width:980px;margin:24px auto;padding:0 16px}
-  .card{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:18px 18px 8px 18px;box-shadow:0 10px 30px rgba(0,0,0,.25);margin-bottom:18px}
-  .h1{font-size:26px;font-weight:800;margin:2px 0 14px}
+  .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+  .card{background:var(--card);border:1px solid #1f2937;border-radius:18px;padding:18px 18px 12px;box-shadow:0 10px 30px rgba(0,0,0,.25);margin-bottom:18px}
+  .h1{font-size:28px;font-weight:800;margin:2px 0 8px}
   .h2{font-size:18px;color:var(--ink2);margin:0 0 10px}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .btn{appearance:none;border:1px solid #334155;background:#0b1220;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn{appearance:none;border:1px solid #334155;background:#0b1220;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700}
   .btn:hover{border-color:#475569;background:#0c1a33}
   .btn.primary{background:linear-gradient(180deg,#1d4ed8,#1e40af);border-color:#1e3a8a}
   .btn.ghost{background:transparent;border-color:#334155}
-  .btn.small{padding:6px 10px;font-size:13px}
-  .meta{color:var(--muted);font-size:13px}
-  .q{margin:8px 0 10px}
-  .opt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid #1f2937;background:#0a1324;margin:6px 0}
+  .btn.small{padding:7px 11px;font-size:13px}
+  .meta{color:var(--muted);font-size:13px;line-height:1.5}
+  .q{margin:8px 0 10px;font-size:17px;line-height:1.5}
+  .opt{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;border:1px solid #1f2937;background:#0a1324;margin:6px 0}
   .opt input{margin-top:2px}
   .opt.correct{border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.08)}
   .opt.incorrect{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.08)}
   .pill{display:inline-block;background:var(--chip);border:1px solid #334155;color:var(--ink2);font-size:12px;border-radius:999px;padding:3px 9px;margin-right:6px}
-  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;border-top:1px dashed #334155;padding-top:10px}
-  input[type="text"]{width:100%;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--ink)}
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;border-top:1px dashed #334155;padding-top:10px;gap:10px;flex-wrap:wrap}
+  input[type="text"]{width:100%;padding:12px;border-radius:12px;border:1px solid #1f2937;background:#0b1220;color:var(--ink);font-size:15px}
   .score{font-size:18px;font-weight:800}
   .tag{font-size:12px;color:#93c5fd}
-  .hidden{display:none}
-  .tabs .btn.active{border-color:#1e3a8a; background:#0c1a33}
-  .list-item{padding:8px;border-bottom:1px dashed #334155}
+  .hidden{display:none !important}
+  .modeTabs .btn.active, .topTabs .btn.active{border-color:#1e3a8a;background:#0c1a33}
+  .list-item{padding:8px;border-bottom:1px dashed #334155;line-height:1.45}
+  .hintBox{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.35);color:#dbeafe}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}
+  .stat{background:#0b1220;border:1px solid #1f2937;padding:12px;border-radius:14px}
+  .stat .big{font-size:22px;font-weight:800}
+  .sectionTitle{font-size:20px;font-weight:800;margin:0 0 8px}
+  .flashWrap{display:grid;grid-template-columns:1fr;gap:16px}
+  .flashControls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .quizletActions{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .flashMiniActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .quizletBtn{flex:1;min-width:220px;padding:14px 18px;border-radius:16px;border:1px solid #334155;background:#0b1220;color:var(--ink);font-weight:800;cursor:pointer}
+  .quizletBtn:hover{background:#0c1a33}
+  .quizletBtn.left{border-color:rgba(239,68,68,.45)}
+  .quizletBtn.right{border-color:rgba(16,185,129,.45)}
+  .flashStage{perspective:1200px;min-height:320px}
+  .flashCard{position:relative;width:100%;min-height:320px;transform-style:preserve-3d;transition:transform .7s ease;cursor:pointer}
+  .flashCard.flipped{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:22px;padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid #334155;box-shadow:0 20px 40px rgba(0,0,0,.22)}
+  .front{background:linear-gradient(180deg,#111827,#0b1220)}
+  .back{background:linear-gradient(180deg,#0f1a35,#10214a);transform:rotateY(180deg)}
+  .flashLabel{font-size:13px;color:#93c5fd;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+  .flashFrontText{font-size:26px;font-weight:800;line-height:1.35;max-width:760px}
+  .flashBackText{font-size:34px;font-weight:900;line-height:1.2}
+  .flashBackSub{margin-top:10px;color:#bfdbfe;font-size:16px}
+  .flashTopic{margin-top:16px;color:var(--muted);font-size:14px}
+  .center{text-align:center}
+  .empty{padding:24px;border:1px dashed #334155;border-radius:16px;background:#0b1220;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
-    <div class="h1">Angol teszt</div>
-    <div class="row tabs" style="margin-top:10px">
-      <button id="startBtn" class="btn primary" type="button">Új teszt indítása (20 véletlen kérdés)</button>
-      <button id="showAllBtn" class="btn ghost" type="button">Összes kérdés listázása (tanuláshoz)</button>
-      <button id="unseenTabBtn" class="btn ghost" type="button">Még nem tanult kérdéseim</button>
-      <button id="mistakesTabBtn" class="btn ghost" type="button">Hibáim (rossz válaszok)</button>
+    <div class="h1">Angol teszt és szótanuló</div>
+    <div class="meta">3 mód egy helyen: feleletválasztós, szóbeíró és Quizlet-stílusú flashcard. A flashcardok kulcsszavai a feltöltött PDF fő fogalmaiból is épülnek.</div>
+
+    <div class="row modeTabs" style="margin-top:14px">
+      <button id="modeMcqBtn" class="btn primary active" type="button">Feleletválasztós mód</button>
+      <button id="modeTextBtn" class="btn ghost" type="button">Szóbeíró mód</button>
+      <button id="modeFlashBtn" class="btn ghost" type="button">Flashcard mód</button>
+    </div>
+
+    <div class="row topTabs" style="margin-top:14px">
+      <button id="startBtn" class="btn primary" type="button">Új kör indítása</button>
+      <button id="showAllBtn" class="btn ghost" type="button">Összes aktuális kérdés</button>
+      <button id="unseenTabBtn" class="btn ghost" type="button">Még nem tanultak</button>
+      <button id="mistakesTabBtn" class="btn ghost" type="button">Hibáim</button>
     </div>
   </div>
 
   <div id="testContainer"></div>
+
+  <div id="flashContainer" class="card hidden">
+    <div class="sectionTitle">Flashcard tanulás</div>
+    <div class="meta">A kártya elején a magyar jelentés vagy leírás látszik. Kattints a kártyára a fordításhoz.</div>
+    <div class="flashWrap" style="margin-top:14px">
+      <div class="flashControls">
+        <div class="row">
+          <button id="flashPrevBtn" class="btn" type="button">← Előző</button>
+          <button id="flashFlipBtn" class="btn primary" type="button">Megfordítás</button>
+          <button id="flashNextBtn" class="btn" type="button">Következő →</button>
+        </div>
+        <div class="meta" id="flashCounter"></div>
+      </div>
+
+      <div class="flashMiniActions">
+        <button id="flashRandom20Btn" class="btn ghost" type="button">Random 20 szó</button>
+        <button id="flashReviewOnlyBtn" class="btn ghost" type="button">Csak a nem mentek</button>
+        <button id="flashAllBtn" class="btn ghost" type="button">Összes flashcard</button>
+      </div>
+
+      <div class="flashStage">
+        <div id="flashCard" class="flashCard">
+          <div class="face front">
+            <div class="flashLabel">Magyar oldal</div>
+            <div class="flashFrontText" id="flashFrontText"></div>
+            <div class="flashTopic" id="flashFrontTopic"></div>
+          </div>
+          <div class="face back">
+            <div class="flashLabel">Angol szakszó</div>
+            <div class="flashBackText" id="flashBackText"></div>
+            <div class="flashBackSub" id="flashBackSub"></div>
+            <div class="flashTopic" id="flashBackTopic"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quizletActions">
+        <button id="flashNotLearnedBtn" class="quizletBtn left" type="button">← Még nem sikerült megtanulni</button>
+        <button id="flashLearnedBtn" class="quizletBtn right" type="button">Megtanultam →</button>
+      </div>
+    </div>
+  </div>
 
   <div id="resultCard" class="card hidden">
     <div class="h1">Eredmény</div>
     <div id="scoreLine" class="score"></div>
     <div id="detailLine" class="meta" style="margin-top:6px"></div>
     <div class="row" style="margin-top:12px; flex-wrap:wrap; gap:10px;">
-      <button class="btn primary" id="restartBtn" type="button">Új, véletlen 20 kérdés</button>
-      <button class="btn" id="reviewBtn" type="button">Összes (aktuális) kérdés megoldásának mutatása</button>
-      <button class="btn ghost" id="resultPracticeMistakesBtn" type="button">Hibáim tanulása ()</button>
+      <button class="btn primary" id="restartBtn" type="button">Új kör</button>
+      <button class="btn" id="reviewBtn" type="button">Megoldások mutatása</button>
+      <button class="btn ghost" id="resultPracticeMistakesBtn" type="button">Hibáim tanulása</button>
     </div>
   </div>
 
   <div id="bulkCard" class="card hidden">
-    <div class="h2">Gyors ellenőrzés és gyakorlás</div>
-    <div class="meta">Ezekkel gyorsan újratanulhatod a hibáidat.</div>
+    <div class="h2">Gyors gyakorlás</div>
+    <div class="meta">Ha elrontottál valamit, itt gyorsan újra tudod venni.</div>
     <div class="row" style="margin-top:10px; flex-wrap:wrap; gap:12px;">
-      <button class="btn ghost" id="practiceMistakesBtn" type="button">Hibáim tanulása (10 véletlen kérdés)</button>
-      <button class="btn" id="practiceMistakesAll" type="button">Összes hibám gyakorlása</button>
+      <button class="btn ghost" id="practiceMistakesBtn" type="button">Hibáim tanulása (10)</button>
+      <button class="btn" id="practiceMistakesAll" type="button">Összes hibám</button>
     </div>
   </div>
 
   <div id="mistakesCard" class="card hidden">
-    <div class="h2">Hibáim – gyakorló lista</div>
+    <div class="h2">Hibáim</div>
     <div class="meta" id="mistakesMeta">Még nincs rögzített hibád.</div>
     <div class="row" style="margin:10px 0">
-      <button id="practiceMistakes10" class="btn" type="button">Gyakorlás a hibáimból (10)</button>
-      <button id="practiceMistakes20" class="btn" type="button">Gyakorlás a hibáimból (20)</button>
+      <button id="practiceMistakes10" class="btn" type="button">Gyakorlás (10)</button>
+      <button id="practiceMistakes20" class="btn" type="button">Gyakorlás (20)</button>
       <button id="clearMistakesBtn" class="btn ghost" type="button">Hibalista törlése</button>
     </div>
     <div id="mistakesList"></div>
@@ -85,8 +162,8 @@
     <div class="h2">Még nem tanult kérdéseim</div>
     <div class="meta" id="unseenMeta">Betöltés…</div>
     <div class="row" style="margin:10px 0">
-      <button id="practiceUnseen10" class="btn" type="button">Gyakorlás (10 véletlen)</button>
-      <button id="practiceUnseen20" class="btn" type="button">Gyakorlás (80 véletlen)</button>
+      <button id="practiceUnseen10" class="btn" type="button">Gyakorlás (10)</button>
+      <button id="practiceUnseen20" class="btn" type="button">Gyakorlás (20)</button>
       <button id="clearSeenBtn" class="btn ghost" type="button">„Megnézettek” törlése</button>
     </div>
     <div id="unseenList"></div>
@@ -157,12 +234,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Charts",
     text: "Which type of chart is useful for showing the percentage breakdown of data?",
-    options: [
-      "Line graph",
-      "Bar chart",
-      "Pie chart",
-      "Histogram"
-    ],
+    options: ["Line graph", "Bar chart", "Pie chart", "Histogram"],
     correct: [2]
   },
   {
@@ -185,12 +257,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Macroeconomics",
     text: "Which economic measure focuses on the income earned by a country's residents regardless of where they are?",
-    options: [
-      "GDP",
-      "GNI",
-      "CPI",
-      "PPI"
-    ],
+    options: ["GDP", "GNI", "CPI", "PPI"],
     correct: [1]
   },
   {
@@ -199,12 +266,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Macroeconomics",
     text: "Which term refers to a severe and prolonged economic downturn?",
-    options: [
-      "Recession",
-      "Depression",
-      "Contraction",
-      "Peak"
-    ],
+    options: ["Recession", "Depression", "Contraction", "Peak"],
     correct: [1]
   },
   {
@@ -213,12 +275,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "Which type of unemployment is caused by technological changes?",
-    options: [
-      "Frictional unemployment",
-      "Cyclical unemployment",
-      "Structural unemployment",
-      "Seasonal unemployment"
-    ],
+    options: ["Frictional unemployment", "Cyclical unemployment", "Structural unemployment", "Seasonal unemployment"],
     correct: [2]
   },
   {
@@ -227,12 +284,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Macroeconomics",
     text: "Which of the following is NOT a key macroeconomic indicator?",
-    options: [
-      "Real Gross Domestic Product",
-      "Inflation rate",
-      "Exchange rate",
-      "Corporate revenue"
-    ],
+    options: ["Real Gross Domestic Product", "Inflation rate", "Exchange rate", "Corporate revenue"],
     correct: [3]
   },
   {
@@ -255,12 +307,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Communication",
     text: "Official records of the discussions and decisions made during a meeting.",
-    options: [
-      "Memo",
-      "Minute",
-      "Presentation",
-      "Email"
-    ],
+    options: ["Memo", "Minute", "Presentation", "Email"],
     correct: [1]
   },
   {
@@ -283,12 +330,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Culture",
     text: "In the Lewis Model of cultural types, which colour is associated with linear-active cultures?",
-    options: [
-      "Red",
-      "Blue",
-      "Yellow",
-      "Green"
-    ],
+    options: ["Red", "Blue", "Yellow", "Green"],
     correct: [1]
   },
   {
@@ -353,12 +395,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Communication",
     text: "Which is not part of a MEMO?",
-    options: [
-      "Heading",
-      "Opening paragraph",
-      "Problem statement",
-      "Closing paragraph"
-    ],
+    options: ["Heading", "Opening paragraph", "Problem statement", "Closing paragraph"],
     correct: [3]
   },
   {
@@ -367,12 +404,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Culture",
     text: "In Hofstede's model, a society that prefers cooperation, modesty, and quality of life is considered:",
-    options: [
-      "High in masculinity",
-      "High in femininity",
-      "High in individualism",
-      "Low in uncertainty avoidance"
-    ],
+    options: ["High in masculinity", "High in femininity", "High in individualism", "Low in uncertainty avoidance"],
     correct: [1]
   },
   {
@@ -395,12 +427,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "What is the main advantage of direct distribution?",
-    options: [
-      "Lower marketing costs",
-      "Full control over pricing and customer experience",
-      "Wider market reach",
-      "Reduced customer service efforts"
-    ],
+    options: ["Lower marketing costs", "Full control over pricing and customer experience", "Wider market reach", "Reduced customer service efforts"],
     correct: [1]
   },
   {
@@ -409,12 +436,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "Which of the following is NOT part of the traditional marketing mix (4 Ps)?",
-    options: [
-      "Product",
-      "Price",
-      "Process",
-      "Promotion"
-    ],
+    options: ["Product", "Price", "Process", "Promotion"],
     correct: [2]
   },
   {
@@ -423,12 +445,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "What type of promotion involves providing a limited-time discount to boost sales?",
-    options: [
-      "Public relations",
-      "Advertising",
-      "Sales promotion",
-      "Personal selling"
-    ],
+    options: ["Public relations", "Advertising", "Sales promotion", "Personal selling"],
     correct: [2]
   },
   {
@@ -437,12 +454,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "Which pricing strategy involves setting a low price initially to gain market share and then raising the price over time?",
-    options: [
-      "Price skimming",
-      "Value-based pricing",
-      "Penetration pricing",
-      "Cost-plus pricing"
-    ],
+    options: ["Price skimming", "Value-based pricing", "Penetration pricing", "Cost-plus pricing"],
     correct: [2]
   },
   {
@@ -451,12 +463,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "Which segmentation method divides the market based on consumers' interests, values, and lifestyle?",
-    options: [
-      "Demographic segmentation",
-      "Behavioral segmentation",
-      "Geographic segmentation",
-      "Psychographic segmentation"
-    ],
+    options: ["Demographic segmentation", "Behavioral segmentation", "Geographic segmentation", "Psychographic segmentation"],
     correct: [3]
   },
   {
@@ -465,12 +472,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "Which element of the marketing mix involves determining the amount charged for a product?",
-    options: [
-      "Product",
-      "Price",
-      "Place",
-      "Promotion"
-    ],
+    options: ["Product", "Price", "Place", "Promotion"],
     correct: [1]
   },
   {
@@ -507,12 +509,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Marketing",
     text: "Which of the following is the main focus of 'place' in the marketing mix?",
-    options: [
-      "The features of the product",
-      "The pricing strategies",
-      "The distribution channels and locations",
-      "The advertising techniques used"
-    ],
+    options: ["The features of the product", "The pricing strategies", "The distribution channels and locations", "The advertising techniques used"],
     correct: [2]
   },
   {
@@ -521,12 +518,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What is a significant environmental impact of globalization?",
-    options: [
-      "Climate change",
-      "Improved biodiversity",
-      "Increased forestation",
-      "Reduced pollution"
-    ],
+    options: ["Climate change", "Improved biodiversity", "Increased forestation", "Reduced pollution"],
     correct: [0]
   },
   {
@@ -535,12 +527,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What marked the beginnings of global economic links?",
-    options: [
-      "The Silk Road",
-      "The Industrial Revolution",
-      "The Age of Digitalization",
-      "The Cold War"
-    ],
+    options: ["The Silk Road", "The Industrial Revolution", "The Age of Digitalization", "The Cold War"],
     correct: [0]
   },
   {
@@ -550,12 +537,12 @@ const QUESTION_BANK = [
     topic: "Globalization",
     text: "What is sustainable development?",
     options: [
-      "Economic growth without harming future generations",
       "Exploiting natural resources for profit",
       "Development focused on urban areas",
-      "A system with no environmental regulations"
+      "A system with no environmental regulations",
+      "Economic growth without harming future generations"
     ],
-    correct: [0]
+    correct: [3]
   },
   {
     id: "english-mcq-034",
@@ -563,12 +550,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What does protectionism aim to do?",
-    options: [
-      "Protect domestic markets from foreign competition",
-      "Promote unrestricted global trade",
-      "Eliminate tariffs",
-      "Encourage outsourcing"
-    ],
+    options: ["Protect domestic markets from foreign competition", "Promote unrestricted global trade", "Eliminate tariffs", "Encourage outsourcing"],
     correct: [0]
   },
   {
@@ -577,12 +559,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "Which organization was created to regulate global trade in 1995?",
-    options: [
-      "The World Trade Organization (WTO)",
-      "The League of Nations",
-      "The G7",
-      "The European Union"
-    ],
+    options: ["The World Trade Organization (WTO)", "The League of Nations", "The G7", "The European Union"],
     correct: [0]
   },
   {
@@ -591,13 +568,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What is outsourcing?",
-    options: [
-      "Delegating operations to another contractor",
-      "Importing foreign labor",
-      "Exporting goods internationally",
-      "Restricting trade to local areas"
-    ],
-    correct: [0]
+    options: ["Importing foreign labor", "Delegating operations to another contractor", "Exporting goods internationally", "Restricting trade to local areas"],
+    correct: [1]
   },
   {
     id: "english-mcq-037",
@@ -605,12 +577,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What was established during the Bretton Woods Agreement?",
-    options: [
-      "Fixed currency exchange rates",
-      "Free trade zones",
-      "Digital currency systems",
-      "Blockchain technologies"
-    ],
+    options: ["Fixed currency exchange rates", "Free trade zones", "Digital currency systems", "Blockchain technologies"],
     correct: [0]
   },
   {
@@ -619,13 +586,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What are tariffs?",
-    options: [
-      "Taxes charged on imports",
-      "Subsidies for local businesses",
-      "Quotas for trade volumes",
-      "Free trade agreements"
-    ],
-    correct: [0]
+    options: ["Subsidies for local businesses", "Quotas for trade volumes", "Free trade agreements", "Taxes charged on imports"],
+    correct: [3]
   },
   {
     id: "english-mcq-039",
@@ -633,13 +595,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Globalization",
     text: "What is a balance of payments surplus?",
-    options: [
-      "When inflow exceeds outflow",
-      "When outflow exceeds inflow",
-      "When imports are higher than exports",
-      "When there is no international trade"
-    ],
-    correct: [0]
+    options: ["When outflow exceeds inflow", "When imports are higher than exports", "When there is no international trade", "When inflow exceeds outflow"],
+    correct: [3]
   },
   {
     id: "english-mcq-040",
@@ -648,12 +605,12 @@ const QUESTION_BANK = [
     topic: "Globalization",
     text: "What is globalization?",
     options: [
-      "A process characterized by the flow of goods, services, capital, and information on an international scale",
       "A local economic exchange of goods",
       "A focus on national economies only",
+      "A process characterized by the flow of goods, services, capital, and information on an international scale",
       "A system where trade is restricted"
     ],
-    correct: [0]
+    correct: [2]
   },
   {
     id: "english-mcq-041",
@@ -661,13 +618,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What does employment refer to in economics?",
-    options: [
-      "Having paid work",
-      "Volunteering for a cause",
-      "A contract-based job",
-      "Working as a freelancer"
-    ],
-    correct: [0]
+    options: ["Volunteering for a cause", "A contract-based job", "Having paid work", "Working as a freelancer"],
+    correct: [2]
   },
   {
     id: "english-mcq-042",
@@ -675,12 +627,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What does 'remote work' mean?",
-    options: [
-      "Working from home or outside the office",
-      "Being on-call during the night",
-      "Temporary office arrangements",
-      "Managing physical labor jobs"
-    ],
+    options: ["Working from home or outside the office", "Being on-call during the night", "Temporary office arrangements", "Managing physical labor jobs"],
     correct: [0]
   },
   {
@@ -689,13 +636,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What is the purpose of a cover letter?",
-    options: [
-      "Introduce yourself to the employer",
-      "Replace the resume",
-      "List only personal achievements",
-      "Provide salary expectation"
-    ],
-    correct: [0]
+    options: ["Replace the resume", "List only personal achievements", "Provide salary expectation", "Introduce yourself to the employer"],
+    correct: [3]
   },
   {
     id: "english-mcq-044",
@@ -703,13 +645,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What is a signing bonus?",
-    options: [
-      "A one-time payment to attract talent",
-      "Compensation for extra work hours",
-      "A bonus for meeting performance targets",
-      "Profit-sharing"
-    ],
-    correct: [0]
+    options: ["Compensation for extra work hours", "A bonus for meeting performance targets", "A one-time payment to attract talent", "Profit-sharing"],
+    correct: [2]
   },
   {
     id: "english-mcq-045",
@@ -717,13 +654,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Recruitment",
     text: "What is recruitment?",
-    options: [
-      "The process of finding and selecting candidates",
-      "Hiring only senior employees",
-      "Screening internal employees exclusively",
-      "A strategy for marketing products"
-    ],
-    correct: [0]
+    options: ["Hiring only senior employees", "Screening internal employees exclusively", "The process of finding and selecting candidates", "A strategy for marketing products"],
+    correct: [2]
   },
   {
     id: "english-mcq-046",
@@ -731,12 +663,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Recruitment",
     text: "What step follows screening in the recruitment process?",
-    options: [
-      "Shortlisting candidates",
-      "Defining the job role",
-      "Conducting psychometric tests",
-      "Issuing job offers"
-    ],
+    options: ["Shortlisting candidates", "Defining the job role", "Conducting psychometric tests", "Issuing job offers"],
     correct: [0]
   },
   {
@@ -745,12 +672,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What does remuneration include?",
-    options: [
-      "Salaries, wages, and other compensation",
-      "Only direct payments",
-      "Holiday bonuses exclusively",
-      "Non-financial benefits"
-    ],
+    options: ["Salaries, wages, and other compensation", "Only direct payments", "Holiday bonuses exclusively", "Non-financial benefits"],
     correct: [0]
   },
   {
@@ -759,12 +681,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Recruitment",
     text: "What is internal recruitment?",
-    options: [
-      "Promoting existing employees",
-      "Advertising jobs externally",
-      "Using a recruitment agency",
-      "Hiring from competitor companies"
-    ],
+    options: ["Promoting existing employees", "Advertising jobs externally", "Using a recruitment agency", "Hiring from competitor companies"],
     correct: [0]
   },
   {
@@ -773,12 +690,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "Which is an example of fringe benefits?",
-    options: [
-      "Company car",
-      "Hourly wages",
-      "Overtime pay",
-      "Commission"
-    ],
+    options: ["Company car", "Hourly wages", "Overtime pay", "Commission"],
     correct: [0]
   },
   {
@@ -787,13 +699,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Employment",
     text: "What is the role of equity compensation?",
-    options: [
-      "Align employee interests with company performance",
-      "Provide fixed wages",
-      "Offer direct pay without bonuses",
-      "Replace all other benefits"
-    ],
-    correct: [0]
+    options: ["Provide fixed wages", "Align employee interests with company performance", "Offer direct pay without bonuses", "Replace all other benefits"],
+    correct: [1]
   },
   {
     id: "english-mcq-051",
@@ -801,12 +708,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "CSR",
     text: "CSR refers to a company's efforts to:",
-    options: [
-      "Contribute to society beyond profit-making",
-      "Minimize production costs",
-      "Expand market share",
-      "Promote individual employee agendas"
-    ],
+    options: ["Contribute to society beyond profit-making", "Minimize production costs", "Expand market share", "Promote individual employee agendas"],
     correct: [0]
   },
   {
@@ -815,13 +717,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "CSR",
     text: "Ethical labour practices in CSR focus on:",
-    options: [
-      "Ensuring fair wages and safe working conditions",
-      "Prioritizing cost-cutting measures",
-      "Limiting workers' rights",
-      "Increasing production hours"
-    ],
-    correct: [0]
+    options: ["Prioritizing cost-cutting measures", "Limiting workers' rights", "Increasing production hours", "Ensuring fair wages and safe working conditions"],
+    correct: [3]
   },
   {
     id: "english-mcq-053",
@@ -829,13 +726,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Ethics",
     text: "Ethical behaviour in the workplace is critical for:",
-    options: [
-      "Building trust and credibility",
-      "Reducing operational costs",
-      "Increasing short-term profits",
-      "Enhancing digital communication"
-    ],
-    correct: [0]
+    options: ["Reducing operational costs", "Building trust and credibility", "Increasing short-term profits", "Enhancing digital communication"],
+    correct: [1]
   },
   {
     id: "english-mcq-054",
@@ -843,13 +735,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Culture",
     text: "A toxic business culture often leads to:",
-    options: [
-      "High turnover and low morale",
-      "Enhanced employee satisfaction",
-      "Improved productivity",
-      "Greater inclusivity"
-    ],
-    correct: [0]
+    options: ["Enhanced employee satisfaction", "Improved productivity", "Greater inclusivity", "High turnover and low morale"],
+    correct: [3]
   },
   {
     id: "english-mcq-055",
@@ -857,12 +744,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "CSR",
     text: "CSR practices often include:",
-    options: [
-      "Ethical labour practices",
-      "Aggressive advertising",
-      "Restrictive employee policies",
-      "Unchecked resource exploitation"
-    ],
+    options: ["Ethical labour practices", "Aggressive advertising", "Restrictive employee policies", "Unchecked resource exploitation"],
     correct: [0]
   },
   {
@@ -871,13 +753,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Ethics",
     text: "Business ethics primarily deals with:",
-    options: [
-      "Moral principles guiding business conduct",
-      "Financial performance standards",
-      "Legal compliance only",
-      "Marketing strategies"
-    ],
-    correct: [0]
+    options: ["Financial performance standards", "Moral principles guiding business conduct", "Legal compliance only", "Marketing strategies"],
+    correct: [1]
   },
   {
     id: "english-mcq-057",
@@ -885,13 +762,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Culture",
     text: "What defines the 'personality' of an organization?",
-    options: [
-      "Business culture",
-      "Profit margins",
-      "Strategic goals",
-      "Financial reporting"
-    ],
-    correct: [0]
+    options: ["Profit margins", "Strategic goals", "Business culture", "Financial reporting"],
+    correct: [2]
   },
   {
     id: "english-mcq-058",
@@ -899,12 +771,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Career",
     text: "For a job interview, business attire should be:",
-    options: [
-      "Professional and reflective of company culture",
-      "Casual and informal",
-      "Bright and flashy",
-      "Irrelevant to the context"
-    ],
+    options: ["Professional and reflective of company culture", "Casual and informal", "Bright and flashy", "Irrelevant to the context"],
     correct: [0]
   },
   {
@@ -913,13 +780,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Networking",
     text: "Networking primarily helps with:",
-    options: [
-      "Building and maintaining professional relationships",
-      "Increasing annual bonuses",
-      "Enhancing office gossip",
-      "Avoiding professional interactions"
-    ],
-    correct: [0]
+    options: ["Increasing annual bonuses", "Building and maintaining professional relationships", "Enhancing office gossip", "Avoiding professional interactions"],
+    correct: [1]
   },
   {
     id: "english-mcq-060",
@@ -927,13 +789,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Networking",
     text: "Reciprocity in networking ensures:",
-    options: [
-      "Mutual support and value exchange",
-      "Exclusive personal benefits",
-      "Reducing professional interactions",
-      "Ignoring long-term relationships"
-    ],
-    correct: [0]
+    options: ["Exclusive personal benefits", "Reducing professional interactions", "Mutual support and value exchange", "Ignoring long-term relationships"],
+    correct: [2]
   },
   {
     id: "english-mcq-061",
@@ -941,12 +798,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Industry",
     text: "Which industry is highly dependent on efficient logistics and sourcing?",
-    options: [
-      "Manufacturing",
-      "Banking",
-      "Construction",
-      "Tourism"
-    ],
+    options: ["Manufacturing", "Banking", "Construction", "Tourism"],
     correct: [0]
   },
   {
@@ -955,12 +807,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business",
     text: "What is a primary advantage of partnerships?",
-    options: [
-      "Shared expertise",
-      "Minimal regulatory requirements",
-      "Public funding",
-      "Scalability"
-    ],
+    options: ["Shared expertise", "Minimal regulatory requirements", "Public funding", "Scalability"],
     correct: [0]
   },
   {
@@ -969,12 +816,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Forms",
     text: "What is a unique characteristic of sole proprietorships?",
-    options: [
-      "Owner has unlimited liability",
-      "Shared ownership",
-      "Separate legal entity",
-      "Publicly traded shares"
-    ],
+    options: ["Owner has unlimited liability", "Shared ownership", "Separate legal entity", "Publicly traded shares"],
     correct: [0]
   },
   {
@@ -983,13 +825,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Industry",
     text: "Which sector is subject to strict government regulations and quality controls?",
-    options: [
-      "Healthcare/Pharmaceutical",
-      "Retail",
-      "Construction",
-      "Transport"
-    ],
-    correct: [0]
+    options: ["Retail", "Healthcare/Pharmaceutical", "Construction", "Transport"],
+    correct: [1]
   },
   {
     id: "english-mcq-065",
@@ -997,12 +834,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Industry",
     text: "Which sector is known for creating tangible goods?",
-    options: [
-      "Manufacturing",
-      "Healthcare",
-      "IT/Technology",
-      "Media"
-    ],
+    options: ["Manufacturing", "Healthcare", "IT/Technology", "Media"],
     correct: [0]
   },
   {
@@ -1011,12 +843,7 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Organization",
     text: "Which structure emphasizes employee autonomy and collaboration?",
-    options: [
-      "Flat structure",
-      "Hierarchical structure",
-      "Divisional structure",
-      "Network structure"
-    ],
+    options: ["Flat structure", "Hierarchical structure", "Divisional structure", "Network structure"],
     correct: [0]
   },
   {
@@ -1025,13 +852,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Tourism",
     text: "What is a significant feature of the Hungarian tourism sector?",
-    options: [
-      "Rich cultural heritage",
-      "Advanced electronics production",
-      "High investment in IT",
-      "Strong financial regulations"
-    ],
-    correct: [0]
+    options: ["Advanced electronics production", "High investment in IT", "Strong financial regulations", "Rich cultural heritage"],
+    correct: [3]
   },
   {
     id: "english-mcq-068",
@@ -1039,13 +861,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Banking",
     text: "What does the banking sector focus on?",
-    options: [
-      "Managing money, investments, and transactions",
-      "Building physical infrastructure",
-      "Producing tangible goods",
-      "Promoting seasonal tourism"
-    ],
-    correct: [0]
+    options: ["Building physical infrastructure", "Producing tangible goods", "Managing money, investments, and transactions", "Promoting seasonal tourism"],
+    correct: [2]
   },
   {
     id: "english-mcq-069",
@@ -1053,13 +870,8 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Public Relations",
     text: "What is the focus of public relations (PR)?",
-    options: [
-      "Managing a company's image",
-      "Conducting market research",
-      "Overseeing legal compliance",
-      "Managing employee benefits"
-    ],
-    correct: [0]
+    options: ["Conducting market research", "Overseeing legal compliance", "Managing employee benefits", "Managing a company's image"],
+    correct: [3]
   },
   {
     id: "english-mcq-070",
@@ -1067,882 +879,510 @@ const QUESTION_BANK = [
     multi: false,
     topic: "Business Forms",
     text: "Which of these is a common form for multinational corporations?",
-    options: [
-      "Public limited company (PLC)",
-      "Sole proprietorship",
-      "General partners",
-      "Cooperatives"
-    ],
+    options: ["Public limited company (PLC)", "Sole proprietorship", "General partners", "Cooperatives"],
     correct: [0]
   },
 
-  {
-    id: "english-text-001",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A payment made to shareholders from a company’s profits.",
-    answer: ["dividend"]
-  },
-  {
-    id: "english-text-002",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The natural rise and fall of economic activity over time, consisting of periods of expansion, peak, contraction, trough, and recovery.",
-    answer: ["business cycle"]
-  },
-  {
-    id: "english-text-003",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The highest point of economic activity in the business cycle, just before growth slows down.",
-    answer: ["peak"]
-  },
-  {
-    id: "english-text-004",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "The difference between the cost of producing something and the price it is sold for, shown as a percentage of sales.",
-    answer: ["profit margin"]
-  },
-  {
-    id: "english-text-005",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "A situation where house prices rise rapidly to unsustainable levels, often followed by a sharp fall.",
-    answer: ["housing bubble"]
-  },
-  {
-    id: "english-text-006",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "The main financial institution of a country that manages monetary policy, issues currency, and controls interest rates.",
-    answer: ["central bank"]
-  },
-  {
-    id: "english-text-007",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "To increase suddenly and sharply.",
-    answer: ["spike"]
-  },
-  {
-    id: "english-text-008",
-    type: "text",
-    topic: "Macroeconomics Vocabulary",
-    text: "The total income earned by a country’s residents and businesses, including income from abroad, during a specific period.",
-    answer: ["gni", "gross national income"]
-  },
-  {
-    id: "english-text-009",
-    type: "text",
-    topic: "Macroeconomics Vocabulary",
-    text: "The gross domestic product of a country divided by its total population, used as an indicator of the average economic output per person.",
-    answer: ["gdp per capita"]
-  },
-  {
-    id: "english-text-010",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "How well an economy is doing, usually measured by indicators such as GDP, unemployment, inflation, and productivity.",
-    answer: ["economic performance", "performance"]
-  },
-  {
-    id: "english-text-011",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A fund that collects and invests money contributed by employees and employers to provide retirement income.",
-    answer: ["pension fund"]
-  },
-  {
-    id: "english-text-012",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The first sale of a company’s shares to the public, allowing it to be traded on a stock exchange.",
-    answer: ["initial public offering", "ipo"]
-  },
-  {
-    id: "english-text-013",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A machine that allows bank customers to withdraw cash, check balances, or deposit money without visiting one of the bank’s branches.",
-    answer: ["atm"]
-  },
-  {
-    id: "english-text-014",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "Anything of value that a person, company, or country owns, such as money, property, investments, or equipment.",
-    answer: ["asset"]
-  },
-  {
-    id: "english-text-015",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A measure of a bank’s profitability, calculated as the difference between the interest earned on loans and the interest paid on deposits.",
-    answer: ["net interest margin"]
-  },
-  {
-    id: "english-text-016",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A person or organization that makes business or financial arrangements between companies or organizations that do not deal with each other directly.",
-    answer: ["intermediary"]
-  },
-  {
-    id: "english-text-017",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The process by which businesses or governments secure funds from investors, often through issuing securities.",
-    answer: ["capital raising"]
-  },
-  {
-    id: "english-text-018",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "The US term for a current account; a bank account used for frequent, daily transactions, such as deposits, withdrawals, and payments.",
-    answer: ["checking account"]
-  },
-  {
-    id: "english-text-019",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A bank that specialises in corporate finance, such as raising capital, managing mergers and acquisitions, and advising on complex financial transactions.",
-    answer: ["merchant bank"]
-  },
-  {
-    id: "english-text-020",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A person or organisation that takes money from a bank with the agreement to pay it back, usually with interest.",
-    answer: ["borrower"]
-  },
-  {
-    id: "english-text-021",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A way of raising capital by selling a company’s shares to investors in exchange for ownership.",
-    answer: ["equity financing"]
-  },
-  {
-    id: "english-text-022",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "To sell an asset or security in order to obtain money that can be used immediately.",
-    answer: ["convert to cash"]
-  },
-  {
-    id: "english-text-023",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "An investor who believes prices will fall and sells securities to profit from the decline.",
-    answer: ["bear"]
-  },
-  {
-    id: "english-text-024",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "An investment vehicle that pools money from many investors to buy a diversified portfolio of assets, such as stocks or bonds, managed by professionals.",
-    answer: ["fund"]
-  },
-  {
-    id: "english-text-025",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A fixed-income financial instrument in which an investor lends money to a company or government for a defined period, in exchange for regular interest payments and repayment of the principal at maturity.",
-    answer: ["bond"]
-  },
-  {
-    id: "english-text-026",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The buying and selling of financial instruments such as stocks and bonds.",
-    answer: ["trading of securities"]
-  },
-  {
-    id: "english-text-027",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The legal state of being unable to repay debts.",
-    answer: ["bankruptcy"]
-  },
-  {
-    id: "english-text-028",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A regulated marketplace where securities such as stocks and bonds are officially traded.",
-    answer: ["stock exchange"]
-  },
-  {
-    id: "english-text-029",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A type of share that represents direct ownership in a company, giving shareholders voting rights and the possibility of dividends.",
-    answer: ["ordinary share"]
-  },
-  {
-    id: "english-text-030",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A tradable financial instrument, such as a stock, bond, or option, that represents ownership or a debt agreement.",
-    answer: ["security"]
-  },
-  {
-    id: "english-text-031",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A location of a company that operates in a different place from its headquarters but is not a separate legal entity.",
-    answer: ["branch office"]
-  },
-  {
-    id: "english-text-032",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A skilled craftsperson who makes goods by hand, often using traditional methods.",
-    answer: ["artisan"]
-  },
-  {
-    id: "english-text-033",
-    type: "text",
-    topic: "Business Forms",
-    text: "A partnership with at least one partner having limited liability and not participating in management.",
-    answer: ["limited partnership", "lp"]
-  },
-  {
-    id: "english-text-034",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business owned and operated by the government, often in key industries such as energy, transportation, or defence.",
-    answer: ["state owned enterprise", "soe"]
-  },
-  {
-    id: "english-text-035",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "A period when the economy slows, marked by falling output, rising unemployment, or reduced spending.",
-    answer: ["economic downturn"]
-  },
-  {
-    id: "english-text-036",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business owned and managed by its members, who share profits and decision-making equally.",
-    answer: ["cooperative"]
-  },
-  {
-    id: "english-text-037",
-    type: "text",
-    topic: "Business Forms",
-    text: "A company controlled by another (the parent company), which holds a majority of its shares.",
-    answer: ["subsidiary"]
-  },
-  {
-    id: "english-text-038",
-    type: "text",
-    topic: "Business Forms",
-    text: "A legal business structure that protects owners from personal financial risk, limiting their liability to their investment.",
-    answer: ["limited liability company", "llc"]
-  },
-  {
-    id: "english-text-039",
-    type: "text",
-    topic: "Business Forms",
-    text: "An organisation that uses its surplus revenues to achieve social, cultural, or charitable goals rather than distributing profits to owners.",
-    answer: ["non profit company"]
-  },
-  {
-    id: "english-text-040",
-    type: "text",
-    topic: "Organization",
-    text: "An organisational model in which a company is divided into semi-autonomous units based e.g. on products, markets, or geography, each responsible for its own performance.",
-    answer: ["divisional structure"]
-  },
-  {
-    id: "english-text-041",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "Financial assistance provided by a government to support businesses or industries, usually to keep prices low or competitive.",
-    answer: ["subsidy"]
-  },
-  {
-    id: "english-text-042",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A city or region that serves as a centre for trade, business, and economic activity, often connecting merchants and markets from different areas.",
-    answer: ["commercial hub"]
-  },
-  {
-    id: "english-text-043",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "The process of reducing or removing barriers to international trade, such as tariffs, quotas, and restrictions, to allow goods and services to move more freely across borders.",
-    answer: ["trade liberalisation"]
-  },
-  {
-    id: "english-text-044",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "An international organisation established in 1995 that regulates global trade, resolves disputes, and promotes free trade among nations.",
-    answer: ["wto", "world trade organization"]
-  },
-  {
-    id: "english-text-045",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "A tax imposed on imported goods and services.",
-    answer: ["tariff"]
-  },
-  {
-    id: "english-text-046",
-    type: "text",
-    topic: "Sustainability Vocabulary",
-    text: "Goals set by governments or organisations to balance the amount of carbon dioxide emitted with an equivalent amount removed from the atmosphere, usually by a specific deadline.",
-    answer: ["carbon neutral targets", "carbon-neutral targets"]
-  },
-  {
-    id: "english-text-047",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "The official power to make legal decisions and judgments in a particular area.",
-    answer: ["jurisdiction"]
-  },
-  {
-    id: "english-text-048",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The large-scale manufacture of goods combined with widespread purchasing and use of these goods by the general public.",
-    answer: ["mass production", "mass consumption"]
-  },
-  {
-    id: "english-text-049",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The ability of a country, company, or individual to produce more of a good or service using the same amount of resources than others.",
-    answer: ["absolute advantage"]
-  },
-  {
-    id: "english-text-050",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "An abundance of valuable resources or possessions at one’s disposal, particularly money, land, or goods.",
-    answer: ["wealth"]
-  },
-  {
-    id: "english-text-051",
-    type: "text",
-    topic: "Marketing Vocabulary",
-    text: "An event introducing a new product to the market, often involving media and live demonstrations.",
-    answer: ["product launch"]
-  },
-  {
-    id: "english-text-052",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A hands-on training session designed to develop skills through practice and group activities.",
-    answer: ["workshop"]
-  },
-  {
-    id: "english-text-053",
-    type: "text",
-    topic: "HR Vocabulary",
-    text: "An initiative aimed at improving employees’ professional skills and growth.",
-    answer: ["training and development program"]
-  },
-  {
-    id: "english-text-054",
-    type: "text",
-    topic: "Negotiation Vocabulary",
-    text: "The most favourable option a negotiator can pursue if talks fail, representing the fallback plan.",
-    answer: ["batna", "best alternative to a negotiated agreement"]
-  },
-  {
-    id: "english-text-055",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A formal educational meeting focusing on a specific topic, often led by an expert, typically with some practical orientation.",
-    answer: ["seminar"]
-  },
-  {
-    id: "english-text-056",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "An exclusive, small-scale meeting where senior leaders and experts discuss key strategic issues.",
-    answer: ["executive roundtable"]
-  },
-  {
-    id: "english-text-057",
-    type: "text",
-    topic: "Management Vocabulary",
-    text: "The process of distributing available resources such as time, money, or staff among competing projects or tasks to achieve organisational goals.",
-    answer: ["resource allocation"]
-  },
-  {
-    id: "english-text-058",
-    type: "text",
-    topic: "Communication Vocabulary",
-    text: "The act of convincing someone to do or believe something through reasoning, argument, or appeal.",
-    answer: ["persuasion"]
-  },
-  {
-    id: "english-text-059",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "The degree to which less powerful members of organisations and institutions accept and expect unequal distribution of power.",
-    answer: ["power distance"]
-  },
-  {
-    id: "english-text-060",
-    type: "text",
-    topic: "Negotiation Vocabulary",
-    text: "Something given up or compromised in order to reach an agreement.",
-    answer: ["concession"]
-  },
-  {
-    id: "english-text-061",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "Money that must be spent to buy or do something; in business: all costs of operating a business.",
-    answer: ["expense"]
-  },
-  {
-    id: "english-text-062",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "A return to a better or normal state after a decline; in economics, the phase in the business cycle when an economy begins to grow again following a recession.",
-    answer: ["recovery"]
-  },
-  {
-    id: "english-text-063",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The desire and ability of people to buy goods and services at different prices.",
-    answer: ["demand"]
-  },
-  {
-    id: "english-text-064",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "The foreign currencies held by a country’s central bank to support its own currency and manage international payments.",
-    answer: ["foreign exchange reserves"]
-  },
-  {
-    id: "english-text-065",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "To officially produce and distribute a nation’s money, such as banknotes and coins.",
-    answer: ["issue currency"]
-  },
-  {
-    id: "english-text-066",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "The British term for a checking account; a bank account designed for frequent, daily transactions, such as deposits, withdrawals, and payments.",
-    answer: ["current account"]
-  },
-  {
-    id: "english-text-067",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A method of raising capital by borrowing money, usually through loans or bonds, with the obligation to repay it with interest.",
-    answer: ["debt financing"]
-  },
-  {
-    id: "english-text-068",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "Behaviour or attitude of expecting prices in the market to rise.",
-    answer: ["bullish"]
-  },
-  {
-    id: "english-text-069",
-    type: "text",
-    topic: "Business Forms",
-    text: "A type of partnership where all partners share equal responsibility and unlimited liability.",
-    answer: ["general partnership"]
-  },
-  {
-    id: "english-text-070",
-    type: "text",
-    topic: "Employment Vocabulary",
-    text: "A person who works independently, offering services to multiple clients rather than being employed by one company.",
-    answer: ["freelancer"]
-  },
-  {
-    id: "english-text-071",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business arrangement in which two or more parties agree to pool resources for a specific project or activity, sharing profits, risks, and control.",
-    answer: ["joint venture"]
-  },
-  {
-    id: "english-text-072",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business owned and run by a single individual, who has full control and bears unlimited personal liability.",
-    answer: ["sole proprietorship"]
-  },
-  {
-    id: "english-text-073",
-    type: "text",
-    topic: "Business Forms",
-    text: "A company whose shares are traded on a stock exchange and can be bought by the general public, with shareholder liability limited to their investment.",
-    answer: ["public limited company", "plc"]
-  },
-  {
-    id: "english-text-074",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "Relating to business activities, especially banking or company registration, taking place outside a company’s home country, usually in order to reduce taxes or regulations.",
-    answer: ["offshore"]
-  },
-  {
-    id: "english-text-075",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "The worldwide system through which goods and services are produced, transported, and delivered, often involving multiple countries and stages of production.",
-    answer: ["global supply chain"]
-  },
-  {
-    id: "english-text-076",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "A newly established industry that is protected from international competition until it becomes competitive.",
-    answer: ["infant industry"]
-  },
-  {
-    id: "english-text-077",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "A trade agreement signed in 1993 between the United States, Canada, and Mexico that removed trade barriers and created one of the world’s largest free trade zones.",
-    answer: ["nafta", "north american free trade agreement"]
-  },
-  {
-    id: "english-text-078",
-    type: "text",
-    topic: "Negotiation Vocabulary",
-    text: "A competitive negotiation approach where one party’s gain is the other party’s loss.",
-    answer: ["distributive negotiation"]
-  },
-  {
-    id: "english-text-079",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "A social and cultural orientation that prioritizes group goals, cooperation, and interdependence over individual desires or achievements.",
-    answer: ["collectivism"]
-  },
-  {
-    id: "english-text-080",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A large formal meeting where professionals gather to discuss ideas, share knowledge, and network.",
-    answer: ["conference"]
-  },
-  {
-    id: "english-text-081",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The money system used in a particular country.",
-    answer: ["currency"]
-  },
-  {
-    id: "english-text-082",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The branch of economics that studies the performance, structure, and behaviour of entire economies, focusing on issues such as growth, inflation, and unemployment.",
-    answer: ["macroeconomics"]
-  },
-  {
-    id: "english-text-083",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "To pay for or meet the costs of something, often from available income or resources.",
-    answer: ["cover expenses"]
-  },
-  {
-    id: "english-text-084",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "To gradually become smaller, fewer, weaker, or less. In economics, it refers to a decrease in indicators such as GDP, employment, or demand.",
-    answer: ["decline", "decrease"]
-  },
-  {
-    id: "english-text-085",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "The main office or centre of operations for a company or organisation.",
-    answer: ["headquarters"]
-  },
-  {
-    id: "english-text-086",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A plastic or virtual card issued by a bank that allows the holder to borrow money for purchases, repaid later with interest if unpaid in full.",
-    answer: ["credit card"]
-  },
-  {
-    id: "english-text-087",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A plastic or virtual card issued by a bank that allows the holder to spend money directly from their account.",
-    answer: ["debit card"]
-  },
-  {
-    id: "english-text-088",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A bank service that allows customers to withdraw more money than they have in their account, up to a certain limit.",
-    answer: ["overdraft facility"]
-  },
-  {
-    id: "english-text-089",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "The price that a buyer is willing to pay for a security.",
-    answer: ["bid price"]
-  },
-  {
-    id: "english-text-090",
-    type: "text",
-    topic: "Finance Vocabulary",
-    text: "A decentralised market where securities are traded directly between parties, without going through a formal stock exchange.",
-    answer: ["over-the-counter market", "over the counter market", "otc"]
-  },
-  {
-    id: "english-text-091",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business owned and managed by its members, who share profits and decision-making equally.",
-    answer: ["cooperative"]
-  },
-  {
-    id: "english-text-092",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "An office established abroad by a company for marketing, customer support, or administration, without engaging in direct business.",
-    answer: ["representative office"]
-  },
-  {
-    id: "english-text-093",
-    type: "text",
-    topic: "Business Forms",
-    text: "A company that does not trade its shares publicly, limiting ownership to a small group of investors, with liability restricted to their shares.",
-    answer: ["private company limited by shares"]
-  },
-  {
-    id: "english-text-094",
-    type: "text",
-    topic: "Business Forms",
-    text: "A type of business organisation in which ownership is divided into shares that can be bought and sold by investors, who share profits and risks.",
-    answer: ["joint-stock company", "joint stock company"]
-  },
-  {
-    id: "english-text-095",
-    type: "text",
-    topic: "Environment Vocabulary",
-    text: "The cutting down or clearing of forests, often on a large scale, usually for farming, logging, or urban development.",
-    answer: ["deforestation"]
-  },
-  {
-    id: "english-text-096",
-    type: "text",
-    topic: "Environment Vocabulary",
-    text: "An international treaty adopted in 2015 aimed at limiting global warming to well below 2°C above pre-industrial levels, with efforts to limit it to 1.5°C.",
-    answer: ["paris climate accord"]
-  },
-  {
-    id: "english-text-097",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "Refers to the debate between allowing international trade with minimal restrictions and restricting trade to protect domestic industries.",
-    answer: [
-      "free trade vs protectionism",
-      "free trade vs. protectionism",
-      "free trade or protectionism",
-      "free trade and protectionism",
-      "free trade",
-      "protectionism"
-    ]
-  },
-  {
-    id: "english-text-098",
-    type: "text",
-    topic: "Negotiation Vocabulary",
-    text: "A formal discussion aimed at reaching an agreement between two or more parties, often involving compromise and persuasion.",
-    answer: ["negotiation"]
-  },
-  {
-    id: "english-text-099",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A formal event celebrating and recognising outstanding achievements of staff members, etc.",
-    answer: ["awards ceremony"]
-  },
-  {
-    id: "english-text-100",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "A distinction in values, customs, behaviours, or practices between two or more cultural groups.",
-    answer: ["cultural difference"]
-  },
-  {
-    id: "english-text-101",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "A culture in which communication is explicit, direct, and relies mainly on words rather than shared background or non-verbal cues.",
-    answer: ["low-context culture", "low context culture"]
-  },
-  {
-    id: "english-text-102",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "An industry-specific event where businesses exhibit products and services to potential buyers and partners.",
-    answer: ["trade show"]
-  },
-  {
-    id: "english-text-103",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A new plan, action, or program designed to solve a problem or improve a situation.",
-    answer: ["initiative"]
-  },
-  {
-    id: "english-text-104",
-    type: "text",
-    topic: "Communication Vocabulary",
-    text: "A communication skill that involves fully concentrating on, understanding, and responding to both verbal and non-verbal messages from a speaker.",
-    answer: ["active listening"]
-  },
-  {
-    id: "english-text-105",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "An activity designed to improve collaboration, communication, and morale among employees.",
-    answer: ["team-building event", "team building event", "teambuilding event"]
-  },
-  {
-    id: "english-text-106",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "A culture in which communication relies heavily on context, non-verbal signals, and shared knowledge rather than explicit words.",
-    answer: ["high-context culture", "high context culture"]
-  },
-  {
-    id: "english-text-107",
-    type: "text",
-    topic: "Culture Vocabulary",
-    text: "A cultural dimension that measures how comfortable people are with ambiguity and risk, reflecting the extent to which societies rely on rules, planning, and structure to reduce uncertainty.",
-    answer: ["uncertainty avoidance"]
-  },
-  {
-    id: "english-text-108",
-    type: "text",
-    topic: "CSR Vocabulary",
-    text: "A fundraising activity organised to support a social, environmental, or humanitarian cause.",
-    answer: ["charity event"]
-  },
-  {
-    id: "english-text-109",
-    type: "text",
-    topic: "Environment Vocabulary",
-    text: "The gradual using up or exhaustion of natural resources such as minerals, fossil fuels, or water, due to overconsumption or exploitation.",
-    answer: ["resource depletion"]
-  },
-  {
-    id: "english-text-110",
-    type: "text",
-    topic: "Globalization Vocabulary",
-    text: "Competition and tension between countries or regions based on political, economic, or strategic interests.",
-    answer: ["geopolitical rivalry"]
-  },
-  {
-    id: "english-text-111",
-    type: "text",
-    topic: "Employment Vocabulary",
-    text: "The working environment, rights, and standards experienced by workers, including pay, safety, and hours.",
-    answer: ["labour conditions"]
-  },
-  {
-    id: "english-text-112",
-    type: "text",
-    topic: "Business Forms",
-    text: "A business owned by two or more people who share profits, responsibilities, and liabilities.",
-    answer: ["partnership"]
-  },
-  {
-    id: "english-text-113",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "A distinct part of the economy that groups companies providing similar products or services.",
-    answer: ["business sector"]
-  },
-  {
-    id: "english-text-114",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A bank account that pays interest and is intended for saving money rather than everyday spending.",
-    answer: ["savings account"]
-  },
-  {
-    id: "english-text-115",
-    type: "text",
-    topic: "Business Vocabulary",
-    text: "The process of one company buying another.",
-    answer: ["acquisition"]
-  },
-  {
-    id: "english-text-116",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "A banking structure with two levels: 1) a central bank that oversees monetary policy and 2) commercial banks that provide services to businesses and households.",
-    answer: ["two-tier banking system", "two tier banking system"]
-  },
-  {
-    id: "english-text-117",
-    type: "text",
-    topic: "Banking Vocabulary",
-    text: "The process of changing one country's currency into another, often for travel or trade.",
-    answer: ["foreign currency exchange"]
-  },
-  {
-    id: "english-text-118",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The branch of economics that studies the behaviour of individuals, households, and businesses in making decisions about the allocation of limited resources.",
-    answer: ["microeconomics"]
-  },
-  {
-    id: "english-text-119",
-    type: "text",
-    topic: "Economics Vocabulary",
-    text: "The total market value of all goods and services produced in a country, adjusted for inflation to reflect actual growth in output.",
-    answer: ["real gdp"]
-  },
-  {
-    id: "english-text-120",
-    type: "text",
-    topic: "Geography Vocabulary",
-    text: "Relating to or characteristic of a town or city.",
-    answer: ["urban"]
-  },
-  {
-    id: "english-text-121",
-    type: "text",
-    topic: "Inflation Vocabulary",
-    text: "A type of inflation caused mainly by companies that raise prices to increase profits, such inflation is not associated with higher costs or strong consumer demand.",
-    answer: ["profit-driven inflation", "profit driven inflation"]
-  },
-  {
-    id: "english-text-122",
-    type: "text",
-    topic: "Currency Vocabulary",
-    text: "The process by which a country adopts the US dollar as its official or dominant currency, either fully or alongside its own.",
-    answer: ["dollarization", "dollarisation"]
-  }
+  { id: "english-text-001", type: "text", topic: "Finance Vocabulary", text: "A payment made to shareholders from a company’s profits.", answer: ["dividend"] },
+  { id: "english-text-002", type: "text", topic: "Economics Vocabulary", text: "The natural rise and fall of economic activity over time, consisting of periods of expansion, peak, contraction, trough, and recovery.", answer: ["business cycle"] },
+  { id: "english-text-003", type: "text", topic: "Economics Vocabulary", text: "The highest point of economic activity in the business cycle, just before growth slows down.", answer: ["peak"] },
+  { id: "english-text-004", type: "text", topic: "Business Vocabulary", text: "The difference between the cost of producing something and the price it is sold for, shown as a percentage of sales.", answer: ["profit margin"] },
+  { id: "english-text-005", type: "text", topic: "Economics Vocabulary", text: "A situation where house prices rise rapidly to unsustainable levels, often followed by a sharp fall.", answer: ["housing bubble"] },
+  { id: "english-text-006", type: "text", topic: "Banking Vocabulary", text: "The main financial institution of a country that manages monetary policy, issues currency, and controls interest rates.", answer: ["central bank"] },
+  { id: "english-text-007", type: "text", topic: "Business Vocabulary", text: "To increase suddenly and sharply.", answer: ["spike"] },
+  { id: "english-text-008", type: "text", topic: "Macroeconomics Vocabulary", text: "The total income earned by a country’s residents and businesses, including income from abroad, during a specific period.", answer: ["gni", "gross national income"] },
+  { id: "english-text-009", type: "text", topic: "Macroeconomics Vocabulary", text: "The gross domestic product of a country divided by its total population, used as an indicator of the average economic output per person.", answer: ["gdp per capita"] },
+  { id: "english-text-010", type: "text", topic: "Economics Vocabulary", text: "How well an economy is doing, usually measured by indicators such as GDP, unemployment, inflation, and productivity.", answer: ["economic performance", "performance"] },
+  { id: "english-text-011", type: "text", topic: "Finance Vocabulary", text: "A fund that collects and invests money contributed by employees and employers to provide retirement income.", answer: ["pension fund"] },
+  { id: "english-text-012", type: "text", topic: "Finance Vocabulary", text: "The first sale of a company’s shares to the public, allowing it to be traded on a stock exchange.", answer: ["initial public offering", "ipo"] },
+  { id: "english-text-013", type: "text", topic: "Banking Vocabulary", text: "A machine that allows bank customers to withdraw cash, check balances, or deposit money without visiting one of the bank’s branches.", answer: ["atm"] },
+  { id: "english-text-014", type: "text", topic: "Finance Vocabulary", text: "Anything of value that a person, company, or country owns, such as money, property, investments, or equipment.", answer: ["asset"] },
+  { id: "english-text-015", type: "text", topic: "Banking Vocabulary", text: "A measure of a bank’s profitability, calculated as the difference between the interest earned on loans and the interest paid on deposits.", answer: ["net interest margin"] },
+  { id: "english-text-016", type: "text", topic: "Business Vocabulary", text: "A person or organization that makes business or financial arrangements between companies or organizations that do not deal with each other directly.", answer: ["intermediary"] },
+  { id: "english-text-017", type: "text", topic: "Finance Vocabulary", text: "The process by which businesses or governments secure funds from investors, often through issuing securities.", answer: ["capital raising"] },
+  { id: "english-text-018", type: "text", topic: "Banking Vocabulary", text: "The US term for a current account; a bank account used for frequent, daily transactions, such as deposits, withdrawals, and payments.", answer: ["checking account"] },
+  { id: "english-text-019", type: "text", topic: "Banking Vocabulary", text: "A bank that specialises in corporate finance, such as raising capital, managing mergers and acquisitions, and advising on complex financial transactions.", answer: ["merchant bank"] },
+  { id: "english-text-020", type: "text", topic: "Finance Vocabulary", text: "A person or organisation that takes money from a bank with the agreement to pay it back, usually with interest.", answer: ["borrower"] },
+  { id: "english-text-021", type: "text", topic: "Finance Vocabulary", text: "A way of raising capital by selling a company’s shares to investors in exchange for ownership.", answer: ["equity financing"] },
+  { id: "english-text-022", type: "text", topic: "Finance Vocabulary", text: "To sell an asset or security in order to obtain money that can be used immediately.", answer: ["convert to cash"] },
+  { id: "english-text-023", type: "text", topic: "Finance Vocabulary", text: "An investor who believes prices will fall and sells securities to profit from the decline.", answer: ["bear"] },
+  { id: "english-text-024", type: "text", topic: "Finance Vocabulary", text: "An investment vehicle that pools money from many investors to buy a diversified portfolio of assets, such as stocks or bonds, managed by professionals.", answer: ["fund"] },
+  { id: "english-text-025", type: "text", topic: "Finance Vocabulary", text: "A fixed-income financial instrument in which an investor lends money to a company or government for a defined period, in exchange for regular interest payments and repayment of the principal at maturity.", answer: ["bond"] },
+  { id: "english-text-026", type: "text", topic: "Finance Vocabulary", text: "The buying and selling of financial instruments such as stocks and bonds.", answer: ["trading of securities"] },
+  { id: "english-text-027", type: "text", topic: "Finance Vocabulary", text: "The legal state of being unable to repay debts.", answer: ["bankruptcy"] },
+  { id: "english-text-028", type: "text", topic: "Finance Vocabulary", text: "A regulated marketplace where securities such as stocks and bonds are officially traded.", answer: ["stock exchange"] },
+  { id: "english-text-029", type: "text", topic: "Finance Vocabulary", text: "A type of share that represents direct ownership in a company, giving shareholders voting rights and the possibility of dividends.", answer: ["ordinary share"] },
+  { id: "english-text-030", type: "text", topic: "Finance Vocabulary", text: "A tradable financial instrument, such as a stock, bond, or option, that represents ownership or a debt agreement.", answer: ["security"] },
+  { id: "english-text-031", type: "text", topic: "Business Vocabulary", text: "A location of a company that operates in a different place from its headquarters but is not a separate legal entity.", answer: ["branch office"] },
+  { id: "english-text-032", type: "text", topic: "Business Vocabulary", text: "A skilled craftsperson who makes goods by hand, often using traditional methods.", answer: ["artisan"] },
+  { id: "english-text-033", type: "text", topic: "Business Forms", text: "A partnership with at least one partner having limited liability and not participating in management.", answer: ["limited partnership", "lp"] },
+  { id: "english-text-034", type: "text", topic: "Business Forms", text: "A business owned and operated by the government, often in key industries such as energy, transportation, or defence.", answer: ["state owned enterprise", "soe"] },
+  { id: "english-text-035", type: "text", topic: "Economics Vocabulary", text: "A period when the economy slows, marked by falling output, rising unemployment, or reduced spending.", answer: ["economic downturn"] },
+  { id: "english-text-036", type: "text", topic: "Business Forms", text: "A business owned and managed by its members, who share profits and decision-making equally.", answer: ["cooperative"] },
+  { id: "english-text-037", type: "text", topic: "Business Forms", text: "A company controlled by another (the parent company), which holds a majority of its shares.", answer: ["subsidiary"] },
+  { id: "english-text-038", type: "text", topic: "Business Forms", text: "A legal business structure that protects owners from personal financial risk, limiting their liability to their investment.", answer: ["limited liability company", "llc"] },
+  { id: "english-text-039", type: "text", topic: "Business Forms", text: "An organisation that uses its surplus revenues to achieve social, cultural, or charitable goals rather than distributing profits to owners.", answer: ["non profit company"] },
+  { id: "english-text-040", type: "text", topic: "Organization", text: "An organisational model in which a company is divided into semi-autonomous units based e.g. on products, markets, or geography, each responsible for its own performance.", answer: ["divisional structure"] },
+  { id: "english-text-041", type: "text", topic: "Economics Vocabulary", text: "Financial assistance provided by a government to support businesses or industries, usually to keep prices low or competitive.", answer: ["subsidy"] },
+  { id: "english-text-042", type: "text", topic: "Business Vocabulary", text: "A city or region that serves as a centre for trade, business, and economic activity, often connecting merchants and markets from different areas.", answer: ["commercial hub"] },
+  { id: "english-text-043", type: "text", topic: "Globalization Vocabulary", text: "The process of reducing or removing barriers to international trade, such as tariffs, quotas, and restrictions, to allow goods and services to move more freely across borders.", answer: ["trade liberalisation"] },
+  { id: "english-text-044", type: "text", topic: "Globalization Vocabulary", text: "An international organisation established in 1995 that regulates global trade, resolves disputes, and promotes free trade among nations.", answer: ["wto", "world trade organization"] },
+  { id: "english-text-045", type: "text", topic: "Globalization Vocabulary", text: "A tax imposed on imported goods and services.", answer: ["tariff"] },
+  { id: "english-text-046", type: "text", topic: "Sustainability Vocabulary", text: "Goals set by governments or organisations to balance the amount of carbon dioxide emitted with an equivalent amount removed from the atmosphere, usually by a specific deadline.", answer: ["carbon neutral targets", "carbon-neutral targets"] },
+  { id: "english-text-047", type: "text", topic: "Business Vocabulary", text: "The official power to make legal decisions and judgments in a particular area.", answer: ["jurisdiction"] },
+  { id: "english-text-048", type: "text", topic: "Economics Vocabulary", text: "The large-scale manufacture of goods combined with widespread purchasing and use of these goods by the general public.", answer: ["mass production", "mass consumption"] },
+  { id: "english-text-049", type: "text", topic: "Economics Vocabulary", text: "The ability of a country, company, or individual to produce more of a good or service using the same amount of resources than others.", answer: ["absolute advantage"] },
+  { id: "english-text-050", type: "text", topic: "Economics Vocabulary", text: "An abundance of valuable resources or possessions at one’s disposal, particularly money, land, or goods.", answer: ["wealth"] },
+  { id: "english-text-051", type: "text", topic: "Marketing Vocabulary", text: "An event introducing a new product to the market, often involving media and live demonstrations.", answer: ["product launch"] },
+  { id: "english-text-052", type: "text", topic: "Business Vocabulary", text: "A hands-on training session designed to develop skills through practice and group activities.", answer: ["workshop"] },
+  { id: "english-text-053", type: "text", topic: "HR Vocabulary", text: "An initiative aimed at improving employees’ professional skills and growth.", answer: ["training and development program"] },
+  { id: "english-text-054", type: "text", topic: "Negotiation Vocabulary", text: "The most favourable option a negotiator can pursue if talks fail, representing the fallback plan.", answer: ["batna", "best alternative to a negotiated agreement"] },
+  { id: "english-text-055", type: "text", topic: "Business Vocabulary", text: "A formal educational meeting focusing on a specific topic, often led by an expert, typically with some practical orientation.", answer: ["seminar"] },
+  { id: "english-text-056", type: "text", topic: "Business Vocabulary", text: "An exclusive, small-scale meeting where senior leaders and experts discuss key strategic issues.", answer: ["executive roundtable"] },
+  { id: "english-text-057", type: "text", topic: "Management Vocabulary", text: "The process of distributing available resources such as time, money, or staff among competing projects or tasks to achieve organisational goals.", answer: ["resource allocation"] },
+  { id: "english-text-058", type: "text", topic: "Communication Vocabulary", text: "The act of convincing someone to do or believe something through reasoning, argument, or appeal.", answer: ["persuasion"] },
+  { id: "english-text-059", type: "text", topic: "Culture Vocabulary", text: "The degree to which less powerful members of organisations and institutions accept and expect unequal distribution of power.", answer: ["power distance"] },
+  { id: "english-text-060", type: "text", topic: "Negotiation Vocabulary", text: "Something given up or compromised in order to reach an agreement.", answer: ["concession"] },
+  { id: "english-text-061", type: "text", topic: "Business Vocabulary", text: "Money that must be spent to buy or do something; in business: all costs of operating a business.", answer: ["expense"] },
+  { id: "english-text-062", type: "text", topic: "Economics Vocabulary", text: "A return to a better or normal state after a decline; in economics, the phase in the business cycle when an economy begins to grow again following a recession.", answer: ["recovery"] },
+  { id: "english-text-063", type: "text", topic: "Economics Vocabulary", text: "The desire and ability of people to buy goods and services at different prices.", answer: ["demand"] },
+  { id: "english-text-064", type: "text", topic: "Banking Vocabulary", text: "The foreign currencies held by a country’s central bank to support its own currency and manage international payments.", answer: ["foreign exchange reserves"] },
+  { id: "english-text-065", type: "text", topic: "Banking Vocabulary", text: "To officially produce and distribute a nation’s money, such as banknotes and coins.", answer: ["issue currency"] },
+  { id: "english-text-066", type: "text", topic: "Banking Vocabulary", text: "The British term for a checking account; a bank account designed for frequent, daily transactions, such as deposits, withdrawals, and payments.", answer: ["current account"] },
+  { id: "english-text-067", type: "text", topic: "Finance Vocabulary", text: "A method of raising capital by borrowing money, usually through loans or bonds, with the obligation to repay it with interest.", answer: ["debt financing"] },
+  { id: "english-text-068", type: "text", topic: "Finance Vocabulary", text: "Behaviour or attitude of expecting prices in the market to rise.", answer: ["bullish"] },
+  { id: "english-text-069", type: "text", topic: "Business Forms", text: "A type of partnership where all partners share equal responsibility and unlimited liability.", answer: ["general partnership"] },
+  { id: "english-text-070", type: "text", topic: "Employment Vocabulary", text: "A person who works independently, offering services to multiple clients rather than being employed by one company.", answer: ["freelancer"] },
+  { id: "english-text-071", type: "text", topic: "Business Forms", text: "A business arrangement in which two or more parties agree to pool resources for a specific project or activity, sharing profits, risks, and control.", answer: ["joint venture"] },
+  { id: "english-text-072", type: "text", topic: "Business Forms", text: "A business owned and run by a single individual, who has full control and bears unlimited personal liability.", answer: ["sole proprietorship"] },
+  { id: "english-text-073", type: "text", topic: "Business Forms", text: "A company whose shares are traded on a stock exchange and can be bought by the general public, with shareholder liability limited to their investment.", answer: ["public limited company", "plc"] },
+  { id: "english-text-074", type: "text", topic: "Business Vocabulary", text: "Relating to business activities, especially banking or company registration, taking place outside a company’s home country, usually in order to reduce taxes or regulations.", answer: ["offshore"] },
+  { id: "english-text-075", type: "text", topic: "Globalization Vocabulary", text: "The worldwide system through which goods and services are produced, transported, and delivered, often involving multiple countries and stages of production.", answer: ["global supply chain"] },
+  { id: "english-text-076", type: "text", topic: "Globalization Vocabulary", text: "A newly established industry that is protected from international competition until it becomes competitive.", answer: ["infant industry"] },
+  { id: "english-text-077", type: "text", topic: "Globalization Vocabulary", text: "A trade agreement signed in 1993 between the United States, Canada, and Mexico that removed trade barriers and created one of the world’s largest free trade zones.", answer: ["nafta", "north american free trade agreement"] },
+  { id: "english-text-078", type: "text", topic: "Negotiation Vocabulary", text: "A competitive negotiation approach where one party’s gain is the other party’s loss.", answer: ["distributive negotiation"] },
+  { id: "english-text-079", type: "text", topic: "Culture Vocabulary", text: "A social and cultural orientation that prioritizes group goals, cooperation, and interdependence over individual desires or achievements.", answer: ["collectivism"] },
+  { id: "english-text-080", type: "text", topic: "Business Vocabulary", text: "A large formal meeting where professionals gather to discuss ideas, share knowledge, and network.", answer: ["conference"] },
+  { id: "english-text-081", type: "text", topic: "Finance Vocabulary", text: "The money system used in a particular country.", answer: ["currency"] },
+  { id: "english-text-082", type: "text", topic: "Economics Vocabulary", text: "The branch of economics that studies the performance, structure, and behaviour of entire economies, focusing on issues such as growth, inflation, and unemployment.", answer: ["macroeconomics"] },
+  { id: "english-text-083", type: "text", topic: "Business Vocabulary", text: "To pay for or meet the costs of something, often from available income or resources.", answer: ["cover expenses"] },
+  { id: "english-text-084", type: "text", topic: "Economics Vocabulary", text: "To gradually become smaller, fewer, weaker, or less. In economics, it refers to a decrease in indicators such as GDP, employment, or demand.", answer: ["decline", "decrease"] },
+  { id: "english-text-085", type: "text", topic: "Business Vocabulary", text: "The main office or centre of operations for a company or organisation.", answer: ["headquarters"] },
+  { id: "english-text-086", type: "text", topic: "Banking Vocabulary", text: "A plastic or virtual card issued by a bank that allows the holder to borrow money for purchases, repaid later with interest if unpaid in full.", answer: ["credit card"] },
+  { id: "english-text-087", type: "text", topic: "Banking Vocabulary", text: "A plastic or virtual card issued by a bank that allows the holder to spend money directly from their account.", answer: ["debit card"] },
+  { id: "english-text-088", type: "text", topic: "Banking Vocabulary", text: "A bank service that allows customers to withdraw more money than they have in their account, up to a certain limit.", answer: ["overdraft facility"] },
+  { id: "english-text-089", type: "text", topic: "Finance Vocabulary", text: "The price that a buyer is willing to pay for a security.", answer: ["bid price"] },
+  { id: "english-text-090", type: "text", topic: "Finance Vocabulary", text: "A decentralised market where securities are traded directly between parties, without going through a formal stock exchange.", answer: ["over-the-counter market", "over the counter market", "otc"] },
+  { id: "english-text-091", type: "text", topic: "Business Forms", text: "A business owned and managed by its members, who share profits and decision-making equally.", answer: ["cooperative"] },
+  { id: "english-text-092", type: "text", topic: "Business Vocabulary", text: "An office established abroad by a company for marketing, customer support, or administration, without engaging in direct business.", answer: ["representative office"] },
+  { id: "english-text-093", type: "text", topic: "Business Forms", text: "A company that does not trade its shares publicly, limiting ownership to a small group of investors, with liability restricted to their shares.", answer: ["private company limited by shares"] },
+  { id: "english-text-094", type: "text", topic: "Business Forms", text: "A type of business organisation in which ownership is divided into shares that can be bought and sold by investors, who share profits and risks.", answer: ["joint-stock company", "joint stock company"] },
+  { id: "english-text-095", type: "text", topic: "Environment Vocabulary", text: "The cutting down or clearing of forests, often on a large scale, usually for farming, logging, or urban development.", answer: ["deforestation"] },
+  { id: "english-text-096", type: "text", topic: "Environment Vocabulary", text: "An international treaty adopted in 2015 aimed at limiting global warming to well below 2°C above pre-industrial levels, with efforts to limit it to 1.5°C.", answer: ["paris climate accord"] },
+  { id: "english-text-097", type: "text", topic: "Globalization Vocabulary", text: "Refers to the debate between allowing international trade with minimal restrictions and restricting trade to protect domestic industries.", answer: ["free trade vs protectionism", "free trade vs. protectionism", "free trade or protectionism", "free trade and protectionism", "free trade", "protectionism"] },
+  { id: "english-text-098", type: "text", topic: "Negotiation Vocabulary", text: "A formal discussion aimed at reaching an agreement between two or more parties, often involving compromise and persuasion.", answer: ["negotiation"] },
+  { id: "english-text-099", type: "text", topic: "Business Vocabulary", text: "A formal event celebrating and recognising outstanding achievements of staff members, etc.", answer: ["awards ceremony"] },
+  { id: "english-text-100", type: "text", topic: "Culture Vocabulary", text: "A distinction in values, customs, behaviours, or practices between two or more cultural groups.", answer: ["cultural difference"] },
+  { id: "english-text-101", type: "text", topic: "Culture Vocabulary", text: "A culture in which communication is explicit, direct, and relies mainly on words rather than shared background or non-verbal cues.", answer: ["low-context culture", "low context culture"] },
+  { id: "english-text-102", type: "text", topic: "Business Vocabulary", text: "An industry-specific event where businesses exhibit products and services to potential buyers and partners.", answer: ["trade show"] },
+  { id: "english-text-103", type: "text", topic: "Business Vocabulary", text: "A new plan, action, or program designed to solve a problem or improve a situation.", answer: ["initiative"] },
+  { id: "english-text-104", type: "text", topic: "Communication Vocabulary", text: "A communication skill that involves fully concentrating on, understanding, and responding to both verbal and non-verbal messages from a speaker.", answer: ["active listening"] },
+  { id: "english-text-105", type: "text", topic: "Business Vocabulary", text: "An activity designed to improve collaboration, communication, and morale among employees.", answer: ["team-building event", "team building event", "teambuilding event"] },
+  { id: "english-text-106", type: "text", topic: "Culture Vocabulary", text: "A culture in which communication relies heavily on context, non-verbal signals, and shared knowledge rather than explicit words.", answer: ["high-context culture", "high context culture"] },
+  { id: "english-text-107", type: "text", topic: "Culture Vocabulary", text: "A cultural dimension that measures how comfortable people are with ambiguity and risk, reflecting the extent to which societies rely on rules, planning, and structure to reduce uncertainty.", answer: ["uncertainty avoidance"] },
+  { id: "english-text-108", type: "text", topic: "CSR Vocabulary", text: "A fundraising activity organised to support a social, environmental, or humanitarian cause.", answer: ["charity event"] },
+  { id: "english-text-109", type: "text", topic: "Environment Vocabulary", text: "The gradual using up or exhaustion of natural resources such as minerals, fossil fuels, or water, due to overconsumption or exploitation.", answer: ["resource depletion"] },
+  { id: "english-text-110", type: "text", topic: "Globalization Vocabulary", text: "Competition and tension between countries or regions based on political, economic, or strategic interests.", answer: ["geopolitical rivalry"] },
+  { id: "english-text-111", type: "text", topic: "Employment Vocabulary", text: "The working environment, rights, and standards experienced by workers, including pay, safety, and hours.", answer: ["labour conditions"] },
+  { id: "english-text-112", type: "text", topic: "Business Forms", text: "A business owned by two or more people who share profits, responsibilities, and liabilities.", answer: ["partnership"] },
+  { id: "english-text-113", type: "text", topic: "Business Vocabulary", text: "A distinct part of the economy that groups companies providing similar products or services.", answer: ["business sector"] },
+  { id: "english-text-114", type: "text", topic: "Banking Vocabulary", text: "A bank account that pays interest and is intended for saving money rather than everyday spending.", answer: ["savings account"] },
+  { id: "english-text-115", type: "text", topic: "Business Vocabulary", text: "The process of one company buying another.", answer: ["acquisition"] },
+  { id: "english-text-116", type: "text", topic: "Banking Vocabulary", text: "A banking structure with two levels: 1) a central bank that oversees monetary policy and 2) commercial banks that provide services to businesses and households.", answer: ["two-tier banking system", "two tier banking system"] },
+  { id: "english-text-117", type: "text", topic: "Banking Vocabulary", text: "The process of changing one country's currency into another, often for travel or trade.", answer: ["foreign currency exchange"] },
+  { id: "english-text-118", type: "text", topic: "Economics Vocabulary", text: "The branch of economics that studies the behaviour of individuals, households, and businesses in making decisions about the allocation of limited resources.", answer: ["microeconomics"] },
+  { id: "english-text-119", type: "text", topic: "Economics Vocabulary", text: "The total market value of all goods and services produced in a country, adjusted for inflation to reflect actual growth in output.", answer: ["real gdp"] },
+  { id: "english-text-120", type: "text", topic: "Geography Vocabulary", text: "Relating to or characteristic of a town or city.", answer: ["urban"] },
+  { id: "english-text-121", type: "text", topic: "Inflation Vocabulary", text: "A type of inflation caused mainly by companies that raise prices to increase profits, such inflation is not associated with higher costs or strong consumer demand.", answer: ["profit-driven inflation", "profit driven inflation"] },
+  { id: "english-text-122", type: "text", topic: "Currency Vocabulary", text: "The process by which a country adopts the US dollar as its official or dominant currency, either fully or alongside its own.", answer: ["dollarization", "dollarisation"] }
 ];
-const QUESTIONS = QUESTION_BANK.filter(q => q.type === "mcq");
 
-/* ======= SEGÉDEK ======= */
-const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
-const pickRandom = (arr, n) => shuffle(arr).slice(0, n);
+const TEXT_HU_HINTS = {
+  "english-text-001":"A cég nyereségéből a részvényeseknek kifizetett pénzösszeg.",
+  "english-text-002":"A gazdasági tevékenység természetes emelkedése és csökkenése az időben, amely expanzióból, csúcspontból, visszaesésből, mélypontból és fellendülésből áll.",
+  "english-text-003":"Az üzleti ciklus legmagasabb pontja, közvetlenül a növekedés lassulása előtt.",
+  "english-text-004":"Az előállítás költsége és az eladási ár közötti különbség, az árbevétel százalékában kifejezve.",
+  "english-text-005":"Olyan helyzet, amikor a lakásárak gyorsan, fenntarthatatlan szintre emelkednek, amit gyakran éles visszaesés követ.",
+  "english-text-006":"Egy ország fő pénzügyi intézménye, amely a monetáris politikát irányítja, pénzt bocsát ki és a kamatlábakat szabályozza.",
+  "english-text-008":"Egy ország lakosai és vállalkozásai által megszerzett teljes jövedelem egy adott időszakban, beleértve a külföldről származó jövedelmet is.",
+  "english-text-009":"Egy ország GDP-je elosztva a teljes népességgel; az egy főre jutó átlagos gazdasági teljesítmény mutatója.",
+  "english-text-010":"Annak mértéke, hogy egy gazdaság mennyire teljesít jól; ezt általában GDP-vel, munkanélküliséggel, inflációval és termelékenységgel mérik.",
+  "english-text-011":"Olyan alap, amely a munkavállalók és munkaadók befizetéseit gyűjti és fekteti be nyugdíjcélból.",
+  "english-text-012":"Egy cég részvényeinek első nyilvános értékesítése, amely lehetővé teszi a tőzsdei kereskedést.",
+  "english-text-013":"Olyan automata, amelyből a banki ügyfelek készpénzt vehetnek fel, egyenleget ellenőrizhetnek vagy pénzt helyezhetnek be bankfiók felkeresése nélkül.",
+  "english-text-014":"Bármilyen értékkel bíró dolog, amelyet egy személy, vállalat vagy ország birtokol, például pénz, ingatlan, befektetés vagy berendezés.",
+  "english-text-015":"A bank jövedelmezőségének mutatója: a hitelek után kapott kamat és a betétek után fizetett kamat különbsége.",
+  "english-text-016":"Olyan személy vagy szervezet, amely üzleti vagy pénzügyi kapcsolatot közvetít olyan felek között, akik nem állnak egymással közvetlen kapcsolatban.",
+  "english-text-017":"Az a folyamat, amelynek során vállalatok vagy kormányok a befektetőktől forrást szereznek, gyakran értékpapír-kibocsátás útján.",
+  "english-text-018":"Az amerikai kifejezés a folyószámlára; olyan bankszámla, amelyet gyakori, napi tranzakciókra használnak, például befizetésre, készpénzfelvételre és fizetésre.",
+  "english-text-019":"Olyan bank, amely vállalati pénzügyekre szakosodik, például tőkebevonásra, vállalatfelvásárlásokra és összetett pénzügyi ügyletek tanácsadására.",
+  "english-text-020":"Olyan személy vagy szervezet, amely pénzt vesz fel a banktól azzal a megállapodással, hogy azt általában kamattal együtt visszafizeti.",
+  "english-text-021":"Tőkebevonási forma, amikor a vállalat tulajdonrészt jelentő részvényeket ad el befektetőknek.",
+  "english-text-022":"Egy eszköz vagy értékpapír eladása annak érdekében, hogy azonnal felhasználható pénzhez jussunk.",
+  "english-text-023":"Olyan befektető, aki áresésre számít, és az értékpapírok árfolyamcsökkenéséből akar profitálni.",
+  "english-text-024":"Olyan befektetési forma, amely sok befektető pénzét gyűjti össze és azt szakemberek által kezelt, diverzifikált portfólióba fekteti.",
+  "english-text-025":"Olyan fix hozamú pénzügyi eszköz, amelyben a befektető pénzt kölcsönöz egy cégnek vagy államnak meghatározott időre, rendszeres kamatért és a tőke lejáratkori visszafizetéséért cserébe.",
+  "english-text-026":"Pénzügyi eszközök, például részvények és kötvények adásvétele.",
+  "english-text-027":"A tartozások visszafizetésére való jogi értelemben vett képtelenség állapota.",
+  "english-text-028":"Szabályozott piac, ahol hivatalosan részvényekkel, kötvényekkel és más értékpapírokkal kereskednek.",
+  "english-text-029":"Olyan részvénytípus, amely közvetlen tulajdonrészt jelent egy cégben, szavazati jogot és osztalék lehetőségét biztosítva.",
+  "english-text-030":"Olyan forgalomképes pénzügyi eszköz, mint a részvény, kötvény vagy opció, amely tulajdonjogot vagy hitelviszonyt testesít meg.",
+  "english-text-033":"Olyan partnerség, amelyben legalább egy tagnak korlátozott a felelőssége, és nem vesz részt az irányításban.",
+  "english-text-035":"Olyan időszak, amikor a gazdaság lassul, csökken a kibocsátás, nő a munkanélküliség vagy visszaesik a költekezés.",
+  "english-text-041":"A kormány által nyújtott pénzügyi segítség vállalkozások vagy iparágak támogatására, általában az árak alacsonyan tartása vagy a versenyképesség megőrzése érdekében.",
+  "english-text-043":"A nemzetközi kereskedelmet akadályozó korlátok, például vámok, kvóták és korlátozások csökkentésének vagy eltörlésének folyamata, hogy az áruk és szolgáltatások szabadabban mozoghassanak az országhatárokon át.",
+  "english-text-044":"1995-ben létrehozott nemzetközi szervezet, amely a világkereskedelmet szabályozza, vitákat rendez és a szabadkereskedelmet támogatja.",
+  "english-text-045":"Az importált árukra és szolgáltatásokra kivetett adó.",
+  "english-text-046":"Olyan célok, amelyeket kormányok vagy szervezetek tűznek ki annak érdekében, hogy a kibocsátott szén-dioxid mennyiségét ugyanannyi elnyelt mennyiséggel ellensúlyozzák, általában meghatározott határidőre.",
+  "english-text-048":"Az áruk nagyüzemi előállítása, valamint ezek széles körű megvásárlása és felhasználása a lakosság által.",
+  "english-text-049":"Annak képessége, hogy egy ország, cég vagy személy ugyanannyi erőforrással többet tud előállítani egy termékből vagy szolgáltatásból, mint mások.",
+  "english-text-053":"Olyan kezdeményezés, amely a dolgozók szakmai készségeinek és fejlődésének javítását célozza.",
+  "english-text-054":"A tárgyaló fél számára legkedvezőbb lehetőség arra az esetre, ha a tárgyalások kudarcba fulladnak; ez a tartalékterv.",
+  "english-text-057":"Az a folyamat, amelynek során a rendelkezésre álló erőforrásokat — például időt, pénzt vagy munkaerőt — egymással versengő projektek és feladatok között osztják el a szervezeti célok elérése érdekében.",
+  "english-text-058":"Annak a folyamata, hogy valakit érveléssel, okfejtéssel vagy ráhatással meggyőzzünk valamiről vagy valaminek a megtételéről.",
+  "english-text-059":"Az a mérték, amennyire a szervezetek és intézmények kevésbé hatalmas tagjai elfogadják és elvárják a hatalom egyenlőtlen eloszlását.",
+  "english-text-060":"Valami, amiről a megállapodás érdekében lemondanak vagy engedményt tesznek.",
+  "english-text-062":"Visszatérés egy jobb vagy normálisabb állapotba; a közgazdaságtanban az üzleti ciklus azon szakasza, amikor a gazdaság recesszió után újra növekedni kezd.",
+  "english-text-063":"Az emberek vásárlási hajlandósága és képessége különböző árak mellett.",
+  "english-text-064":"Az ország központi bankja által tartott külföldi valuták, amelyek saját pénznemének támogatására és a nemzetközi fizetések kezelésére szolgálnak.",
+  "english-text-065":"Egy ország pénzének — például bankjegyeknek és érméknek — hivatalos előállítása és forgalomba hozatala.",
+  "english-text-066":"A brit kifejezés a folyószámlára; olyan bankszámla, amelyet gyakori napi tranzakciókra, például befizetésekre, készpénzfelvételre és fizetésekre használnak.",
+  "english-text-067":"Tőkebevonási módszer pénz kölcsönzésével, általában hiteleken vagy kötvényeken keresztül, visszafizetési és kamatfizetési kötelezettséggel.",
+  "english-text-068":"Olyan magatartás vagy hozzáállás, amely szerint a piaci árak emelkedésére számítanak.",
+  "english-text-070":"Olyan személy, aki önállóan dolgozik, és több ügyfélnek nyújt szolgáltatást ahelyett, hogy egyetlen cég alkalmazottja lenne.",
+  "english-text-071":"Olyan üzleti megállapodás, amelyben két vagy több fél meghatározott projekt vagy tevékenység céljából egyesíti erőforrásait, és megosztják a nyereséget, a kockázatot és az irányítást.",
+  "english-text-072":"Olyan vállalkozás, amelyet egyetlen személy birtokol és irányít, teljes ellenőrzéssel és korlátlan személyes felelősséggel.",
+  "english-text-073":"Olyan társaság, amelynek részvényeivel tőzsdén kereskednek, a nagyközönség is megvásárolhatja azokat, és a részvényesek felelőssége a befektetésükre korlátozódik.",
+  "english-text-075":"Az a világszintű rendszer, amelyben az árukat és szolgáltatásokat előállítják, szállítják és eljuttatják a fogyasztókhoz, gyakran több országon és termelési szakaszon keresztül.",
+  "english-text-076":"Újonnan létrejövő iparág, amelyet nemzetközi versenytől védenek addig, amíg versenyképessé nem válik.",
+  "english-text-077":"1993-ban az Egyesült Államok, Kanada és Mexikó között aláírt kereskedelmi egyezmény, amely lebontotta a kereskedelmi akadályokat és a világ egyik legnagyobb szabadkereskedelmi övezetét hozta létre.",
+  "english-text-078":"Olyan versengő tárgyalási megközelítés, amelyben az egyik fél nyeresége a másik fél vesztesége.",
+  "english-text-079":"Olyan társadalmi és kulturális beállítottság, amely az egyéni vágyakkal vagy eredményekkel szemben a csoportcélokat, az együttműködést és a kölcsönös függést helyezi előtérbe.",
+  "english-text-082":"A közgazdaságtan azon ága, amely teljes gazdaságok teljesítményét, szerkezetét és működését vizsgálja, különösen a növekedést, inflációt és munkanélküliséget.",
+  "english-text-083":"Valaminek a költségeit kifizetni vagy fedezni, általában rendelkezésre álló jövedelemből vagy erőforrásokból.",
+  "english-text-084":"Fokozatosan kisebbé, kevesebbé, gyengébbé válni; a gazdaságban olyan mutatók csökkenését jelenti, mint a GDP, a foglalkoztatás vagy a kereslet.",
+  "english-text-086":"A bank által kibocsátott fizikai vagy virtuális kártya, amely lehetővé teszi, hogy a birtokosa hitelre vásároljon, és később fizesse vissza az összeget, szükség esetén kamattal.",
+  "english-text-087":"A bank által kibocsátott fizikai vagy virtuális kártya, amely lehetővé teszi, hogy a birtokosa közvetlenül a saját számlájáról költsön pénzt.",
+  "english-text-088":"Olyan banki szolgáltatás, amely lehetővé teszi, hogy az ügyfél a számláján lévő összegnél többet vegyen fel vagy költsön, meghatározott keretig.",
+  "english-text-089":"Az az ár, amelyet a vevő hajlandó fizetni egy értékpapírért.",
+  "english-text-090":"Olyan decentralizált piac, ahol az értékpapírokkal közvetlenül a felek kereskednek, nem pedig hivatalos tőzsdén keresztül.",
+  "english-text-095":"Az erdők kivágása vagy nagy léptékű felszámolása, általában mezőgazdasági művelés, fakitermelés vagy városfejlesztés céljából.",
+  "english-text-096":"A 2015-ben elfogadott nemzetközi egyezmény, amelynek célja a globális felmelegedés jóval 2°C alatt tartása, és lehetőség szerint 1,5°C-ra korlátozása az iparosodás előtti szinthez képest.",
+  "english-text-097":"Arra a vitára utal, hogy megengedjük-e a nemzetközi kereskedelmet minimális korlátozásokkal, vagy inkább korlátozzuk azt a hazai iparágak védelme érdekében.",
+  "english-text-098":"Két vagy több fél közötti hivatalos megbeszélés, amelynek célja a megállapodás elérése, gyakran kompromisszummal és meggyőzéssel.",
+  "english-text-100":"Két vagy több kulturális csoport értékei, szokásai, viselkedése vagy gyakorlatai közötti eltérés.",
+  "english-text-101":"Olyan kultúra, amelyben a kommunikáció egyértelmű, közvetlen, és főként a kimondott szavakra épül, nem pedig a háttértudásra vagy nem verbális jelekre.",
+  "english-text-104":"Olyan kommunikációs készség, amely teljes figyelmet, megértést és megfelelő reagálást jelent a beszélő verbális és nem verbális üzeneteire.",
+  "english-text-106":"Olyan kultúra, amelyben a kommunikáció erősen támaszkodik a kontextusra, a nem verbális jelzésekre és a közös háttértudásra, nem csupán a kimondott szavakra.",
+  "english-text-107":"Olyan kulturális dimenzió, amely azt méri, mennyire érzik magukat komfortosan az emberek a kétértelműség és a kockázat jelenlétében, illetve mennyire támaszkodnak szabályokra, tervezésre és struktúrára a bizonytalanság csökkentésére.",
+  "english-text-109":"A természeti erőforrások, például ásványkincsek, fosszilis tüzelőanyagok vagy víz fokozatos felélése vagy kimerítése a túlzott felhasználás vagy kitermelés miatt.",
+  "english-text-110":"Országok vagy régiók közötti versengés és feszültség politikai, gazdasági vagy stratégiai érdekek mentén.",
+  "english-text-111":"A dolgozók által tapasztalt munkakörnyezet, jogok és normák összessége, beleértve a bérezést, biztonságot és munkaidőt.",
+  "english-text-116":"Olyan bankrendszer, amely két szintből áll: 1) központi bank, amely a monetáris politikát felügyeli, és 2) kereskedelmi bankok, amelyek szolgáltatásokat nyújtanak a vállalkozásoknak és háztartásoknak.",
+  "english-text-117":"Az a folyamat, amikor egy ország pénznemét egy másikéra váltják át, jellemzően utazás vagy kereskedelem céljából.",
+  "english-text-118":"A közgazdaságtan azon ága, amely az egyének, háztartások és vállalkozások viselkedését vizsgálja a szűkös erőforrások elosztásáról hozott döntéseik során.",
+  "english-text-119":"Az országban előállított összes termék és szolgáltatás teljes piaci értéke, inflációval korrigálva, hogy a kibocsátás tényleges növekedését mutassa.",
+  "english-text-121":"Olyan inflációtípus, amelyet főként az okoz, hogy a vállalatok a profitjuk növelése érdekében emelik az árakat; ez az infláció nem magasabb költségekből vagy erős fogyasztói keresletből fakad.",
+  "english-text-122":"Az a folyamat, amelynek során egy ország az amerikai dollárt teszi hivatalos vagy meghatározó pénznemévé, akár teljesen, akár a saját pénznemével együtt használva.",
+  "english-text-099":"Olyan hivatalos esemény, amely a munkatársak vagy más résztvevők kiemelkedő teljesítményének elismerésére és megünneplésére szolgál.",
+  "english-text-102":"Iparágspecifikus rendezvény, ahol a vállalkozások bemutatják termékeiket és szolgáltatásaikat a lehetséges vevőknek és partnereknek.",
+  "english-text-103":"Új terv, cselekvés vagy program, amelyet egy probléma megoldására vagy egy helyzet javítására dolgoznak ki.",
+  "english-text-105":"Olyan tevékenység, amelynek célja az együttműködés, a kommunikáció és a munkatársi morál javítása.",
+  "english-text-108":"Olyan adománygyűjtő esemény, amelyet társadalmi, környezeti vagy humanitárius ügy támogatására szerveznek."
+};
+
+const MCQ_HU_HINTS = {
+  "english-mcq-001":"Melyik írja le legjobban a ciklikus munkanélküliséget?",
+  "english-mcq-002":"Mi egy gyakori ökölszabály a recesszió azonosítására?",
+  "english-mcq-003":"Mit jelent a munkanélküliségi ráta?",
+  "english-mcq-004":"Mit jelent a 'levelling off' gazdasági trendeknél?",
+  "english-mcq-005":"Melyik diagram jó az adatok százalékos megoszlásának bemutatására?",
+  "english-mcq-006":"Mi írja le az üzleti ciklus mélypontját?",
+  "english-mcq-007":"Melyik mutató a lakosok jövedelmére koncentrál, bárhol is szerezték azt?",
+  "english-mcq-008":"Melyik kifejezés jelent súlyos és hosszan tartó gazdasági visszaesést?",
+  "english-mcq-009":"Melyik munkanélküliségtípust okozzák a technológiai változások?",
+  "english-mcq-010":"Melyik NEM kulcsfontosságú makrogazdasági mutató?",
+  "english-mcq-011":"Mi jellemző a multi-active kultúrára a Lewis-modell szerint?",
+  "english-mcq-012":"Hogy nevezzük az értekezletek hivatalos jegyzőkönyvét?",
+  "english-mcq-013":"Hofstede szerint melyik dimenzió méri a bizonytalanságtól való kényelmetlenséget?",
+  "english-mcq-014":"A Lewis-modellben melyik szín tartozik a linear-active kultúrákhoz?",
+  "english-mcq-015":"Mit mér a Power Distance Index (PDI)?",
+  "english-mcq-016":"Melyik NEM része Edward T. Hall jéghegy-modelljének?",
+  "english-mcq-017":"Mi írja le a klánkultúrát az üzleti környezetben?",
+  "english-mcq-018":"Mi a low-context kommunikáció elsődleges fókusza?",
+  "english-mcq-019":"Mi nem része egy MEMO-nak?",
+  "english-mcq-020":"Hofstede modelljében milyen társadalom kedveli az együttműködést és szerénységet?",
+  "english-mcq-021":"Mit jelent a price skimming?",
+  "english-mcq-022":"Mi a közvetlen értékesítés fő előnye?",
+  "english-mcq-023":"Melyik NEM része a hagyományos 4P marketingmixnek?",
+  "english-mcq-024":"Melyik promóció ad időszakos kedvezményt az eladások növelésére?",
+  "english-mcq-025":"Melyik árazási stratégia indul alacsony árral a piac megszerzéséhez?",
+  "english-mcq-026":"Melyik szegmentáció osztja fel a piacot érdeklődés, értékek és életmód szerint?",
+  "english-mcq-027":"A marketingmix melyik eleme határozza meg az árat?",
+  "english-mcq-028":"Melyik példa niche marketing stratégiára?",
+  "english-mcq-029":"Mi a marketing elsődleges célja?",
+  "english-mcq-030":"Mi a 'place' fő fókusza a marketingmixben?",
+  "english-mcq-031":"Mi a globalizáció egyik jelentős környezeti hatása?",
+  "english-mcq-032":"Mi jelentette a globális gazdasági kapcsolatok kezdetét?",
+  "english-mcq-033":"Mi a fenntartható fejlődés?",
+  "english-mcq-034":"Mit akar elérni a protekcionizmus?",
+  "english-mcq-035":"Melyik szervezetet hozták létre 1995-ben a globális kereskedelem szabályozására?",
+  "english-mcq-036":"Mi az outsourcing?",
+  "english-mcq-037":"Mit hozott létre a Bretton Woods-i egyezmény?",
+  "english-mcq-038":"Mik a tarifák?",
+  "english-mcq-039":"Mi a fizetési mérleg többlete?",
+  "english-mcq-040":"Mi a globalizáció?",
+  "english-mcq-041":"Mit jelent a foglalkoztatás a közgazdaságtanban?",
+  "english-mcq-042":"Mit jelent a remote work?",
+  "english-mcq-043":"Mi a cover letter célja?",
+  "english-mcq-044":"Mi a signing bonus?",
+  "english-mcq-045":"Mi a recruitment?",
+  "english-mcq-046":"Mi következik a screening után a toborzási folyamatban?",
+  "english-mcq-047":"Mit tartalmaz a remuneration?",
+  "english-mcq-048":"Mi a belső toborzás?",
+  "english-mcq-049":"Melyik példa a fringe benefits-re?",
+  "english-mcq-050":"Mi az equity compensation szerepe?",
+  "english-mcq-051":"A CSR mire utal?",
+  "english-mcq-052":"Mire fókuszálnak az etikus munkaügyi gyakorlatok a CSR-ben?",
+  "english-mcq-053":"Miért kritikus az etikus viselkedés a munkahelyen?",
+  "english-mcq-054":"Mihez vezet gyakran a mérgező vállalati kultúra?",
+  "english-mcq-055":"Mit tartalmaznak gyakran a CSR gyakorlatok?",
+  "english-mcq-056":"Mivel foglalkozik elsősorban az üzleti etika?",
+  "english-mcq-057":"Mi határozza meg egy szervezet 'személyiségét'?",
+  "english-mcq-058":"Milyen legyen az üzleti öltözet egy állásinterjún?",
+  "english-mcq-059":"Miben segít elsősorban a networking?",
+  "english-mcq-060":"Mit biztosít a reciprocitás a networkingben?",
+  "english-mcq-061":"Melyik iparág függ különösen az erős logisztikától és beszerzéstől?",
+  "english-mcq-062":"Mi a partnerségek elsődleges előnye?",
+  "english-mcq-063":"Mi a sole proprietorship egyedi jellemzője?",
+  "english-mcq-064":"Melyik szektorra jellemzőek a szigorú állami szabályozások és minőségellenőrzések?",
+  "english-mcq-065":"Melyik szektor ismert kézzelfogható termékek létrehozásáról?",
+  "english-mcq-066":"Melyik szervezeti forma hangsúlyozza az autonómiát és együttműködést?",
+  "english-mcq-067":"Mi a magyar turizmus egyik jelentős jellemzője?",
+  "english-mcq-068":"Mire fókuszál a bankszektor?",
+  "english-mcq-069":"Mi a public relations fő fókusza?",
+  "english-mcq-070":"Melyik a multinacionális cégek gyakori vállalati formája?"
+};
+
+const EXTRA_HU_TRANSLATIONS = {
+  "merchant bank":"kereskedelmi / vállalati pénzügyi szolgáltatásokra szakosodott bank",
+  "convert to cash":"pénzzé tenni / készpénzzé alakítani",
+  "bear":"árfolyamesésre számító befektető",
+  "fund":"alap / befektetési alap",
+  "trading of securities":"értékpapírok kereskedelme",
+  "ordinary share":"törzsrészvény",
+  "branch office":"fiókiroda",
+  "artisan":"kézműves",
+  "limited partnership":"betéti társasághoz hasonló korlátolt felelősségű partnerség",
+  "state owned enterprise":"állami tulajdonú vállalat",
+  "economic downturn":"gazdasági visszaesés",
+  "cooperative":"szövetkezet",
+  "subsidiary":"leányvállalat",
+  "limited liability company":"korlátolt felelősségű társaság",
+  "non profit company":"nonprofit vállalat / szervezet",
+  "divisional structure":"divizionális szervezeti felépítés",
+  "commercial hub":"kereskedelmi központ",
+  "trade liberalisation":"kereskedelmi liberalizáció",
+  "carbon neutral targets":"karbonsemlegességi célok",
+  "jurisdiction":"joghatóság",
+  "mass production":"tömegtermelés",
+  "mass consumption":"tömegfogyasztás",
+  "absolute advantage":"abszolút előny",
+  "wealth":"vagyon / jólét",
+  "product launch":"termékbevezetés",
+  "workshop":"gyakorlati műhelyfoglalkozás",
+  "training and development program":"képzési és fejlesztési program",
+  "batna":"legjobb alternatíva megállapodás hiányában",
+  "best alternative to a negotiated agreement":"legjobb alternatíva megállapodás hiányában",
+  "seminar":"szeminárium",
+  "executive roundtable":"vezetői kerekasztal-beszélgetés",
+  "persuasion":"meggyőzés",
+  "concession":"engedmény",
+  "expense":"kiadás / költség",
+  "freelancer":"szabadúszó",
+  "joint venture":"közös vállalkozás",
+  "sole proprietorship":"egyéni vállalkozás",
+  "public limited company":"nyilvánosan működő részvénytársaság",
+  "offshore":"offshore / külföldi bejegyzésű",
+  "infant industry":"fejlődő, még védendő iparág",
+  "nafta":"Észak-amerikai Szabadkereskedelmi Egyezmény",
+  "north american free trade agreement":"Észak-amerikai Szabadkereskedelmi Egyezmény",
+  "distributive negotiation":"elosztó jellegű tárgyalás",
+  "conference":"konferencia",
+  "cover expenses":"fedezni a költségeket",
+  "decline":"csökkenés / hanyatlás",
+  "decrease":"csökkenés",
+  "headquarters":"székhely / központ",
+  "bid price":"vételi árfolyam",
+  "over-the-counter market":"tőzsdén kívüli piac",
+  "otc":"tőzsdén kívüli piac",
+  "representative office":"képviseleti iroda",
+  "private company limited by shares":"zártkörű, részvényekre korlátozott felelősségű társaság",
+  "joint-stock company":"részvénytársaság",
+  "deforestation":"erdőirtás",
+  "paris climate accord":"Párizsi Klímaegyezmény",
+  "free trade vs protectionism":"szabadkereskedelem kontra protekcionizmus",
+  "negotiation":"tárgyalás",
+  "awards ceremony":"díjátadó ünnepség",
+  "cultural difference":"kulturális különbség",
+  "low-context culture":"alacsony kontextusú kultúra",
+  "trade show":"szakkiállítás / vásár",
+  "initiative":"kezdeményezés",
+  "active listening":"aktív figyelem / aktív hallgatás",
+  "team-building event":"csapatépítő esemény",
+  "high-context culture":"magas kontextusú kultúra",
+  "charity event":"jótékonysági esemény",
+  "resource depletion":"erőforrás-kimerülés",
+  "geopolitical rivalry":"geopolitikai rivalizálás",
+  "labour conditions":"munkakörülmények",
+  "partnership":"társulás / partnerség",
+  "business sector":"üzleti szektor / gazdasági ágazat",
+  "acquisition":"felvásárlás",
+  "urban":"városi"
+};
+
+const TERM_TRANSLATIONS = {
+  "dividend":"osztalék",
+  "business cycle":"üzleti ciklus",
+  "peak":"csúcspont",
+  "profit margin":"profitráta / haszonkulcs",
+  "housing bubble":"ingatlanpiaci buborék",
+  "central bank":"központi bank",
+  "gni":"bruttó nemzeti jövedelem",
+  "gross national income":"bruttó nemzeti jövedelem",
+  "gdp per capita":"egy főre jutó GDP",
+  "economic performance":"gazdasági teljesítmény",
+  "pension fund":"nyugdíjalap",
+  "initial public offering":"nyilvános részvénykibocsátás",
+  "ipo":"nyilvános részvénykibocsátás",
+  "atm":"bankautomata",
+  "asset":"eszköz / vagyon",
+  "net interest margin":"nettó kamatmarzs",
+  "capital raising":"tőkebevonás",
+  "checking account":"folyószámla (US)",
+  "borrower":"hitelfelvevő / adós",
+  "equity financing":"sajáttőke-finanszírozás",
+  "bond":"kötvény",
+  "stock exchange":"értéktőzsde",
+  "security":"értékpapír",
+  "subsidy":"támogatás / állami támogatás",
+  "wto":"Világkereskedelmi Szervezet",
+  "tariff":"vám",
+  "resource allocation":"erőforrás-elosztás",
+  "power distance":"hatalmi távolság",
+  "recovery":"fellendülés / kilábalás",
+  "demand":"kereslet",
+  "foreign exchange reserves":"devizatartalék",
+  "issue currency":"pénzt kibocsát",
+  "current account":"folyószámla (UK)",
+  "debt financing":"hitelfinanszírozás",
+  "bullish":"árfolyam-emelkedést váró",
+  "global supply chain":"globális ellátási lánc",
+  "collectivism":"kollektivizmus",
+  "currency":"valuta / pénznem",
+  "macroeconomics":"makroökonómia",
+  "microeconomics":"mikroökonómia",
+  "credit card":"hitelkártya",
+  "debit card":"betéti kártya",
+  "overdraft facility":"folyószámlahitel",
+  "savings account":"megtakarítási számla",
+  "two-tier banking system":"kétszintű bankrendszer",
+  "foreign currency exchange":"devizaátváltás",
+  "real gdp":"reál GDP",
+  "profit-driven inflation":"profitorientált infláció",
+  "dollarization":"dollárizáció",
+  "uncertainty avoidance":"bizonytalanságkerülés",
+  "cyclical unemployment":"ciklikus munkanélküliség",
+  "structural unemployment":"strukturális munkanélküliség",
+  "seasonal unemployment":"szezonális munkanélküliség",
+  "frictional unemployment":"súrlódásos munkanélküliség",
+  "inflation":"infláció",
+  "consumer price index":"fogyasztói árindex",
+  "cpi":"fogyasztói árindex",
+  "real gdp":"reál GDP",
+  "gdp":"bruttó hazai termék",
+  "commercial bank":"kereskedelmi bank",
+  "intermediary":"közvetítő"
+};
+
+const FLASHCARDS_FROM_PDF = [
+  { id:"flash-pdf-001", topic:"PDF – Economics", hu:"Az egyének, háztartások és vállalkozások döntéseit vizsgáló közgazdasági ág.", en:"microeconomics", note:"Mikroökonómia" },
+  { id:"flash-pdf-002", topic:"PDF – Economics", hu:"Az egész gazdaság teljesítményét, inflációt, munkanélküliséget és növekedést vizsgáló ág.", en:"macroeconomics", note:"Makroökonómia" },
+  { id:"flash-pdf-003", topic:"PDF – Economics", hu:"A gazdaság állapotát jelző mutatók összessége, mint például GDP, infláció, munkanélküliség és kamatlábak.", en:"macroeconomic indicators", note:"Makrogazdasági mutatók" },
+  { id:"flash-pdf-004", topic:"PDF – Economics", hu:"Egy országban előállított végső termékek és szolgáltatások teljes piaci értéke adott időszak alatt.", en:"gross domestic product (GDP)", note:"Bruttó hazai termék" },
+  { id:"flash-pdf-005", topic:"PDF – Economics", hu:"Az egy főre jutó gazdasági teljesítmény vagy jövedelem durva mutatója.", en:"GDP per capita", note:"Egy főre jutó GDP" },
+  { id:"flash-pdf-006", topic:"PDF – Economics", hu:"Az infláció hatását kiszűrő GDP-mutató, amely a tényleges kibocsátásváltozást mutatja.", en:"real GDP", note:"Reál GDP" },
+  { id:"flash-pdf-007", topic:"PDF – Economics", hu:"A lakosok és hazai vállalkozások által megszerzett teljes jövedelem, akár belföldről, akár külföldről származik.", en:"gross national income (GNI)", note:"Bruttó nemzeti jövedelem" },
+  { id:"flash-pdf-008", topic:"PDF – Inflation", hu:"Az árak általános emelkedése a gazdaságban idővel.", en:"inflation", note:"Infláció" },
+  { id:"flash-pdf-009", topic:"PDF – Inflation", hu:"A pénz vásárlóerejének csökkenése, amikor ugyanannyi pénzből kevesebbet lehet vásárolni.", en:"purchasing power of money decreases", note:"A pénz vásárlóereje csökken" },
+  { id:"flash-pdf-010", topic:"PDF – Inflation", hu:"A fogyasztói árak változását mérő mutató egy tipikus fogyasztói kosár alapján.", en:"consumer price index (CPI)", note:"Fogyasztói árindex" },
+  { id:"flash-pdf-011", topic:"PDF – Inflation", hu:"Olyan infláció, amikor a kereslet gyorsabban nő, mint a termelési kapacitás.", en:"demand-pull inflation", note:"Kereslet húzta infláció" },
+  { id:"flash-pdf-012", topic:"PDF – Inflation", hu:"Olyan infláció, amikor a termelési költségek emelkedése miatt nőnek az árak.", en:"cost-push inflation", note:"Költségoldali infláció" },
+  { id:"flash-pdf-013", topic:"PDF – Inflation", hu:"Olyan infláció, amikor a cégek a szükségesnél jobban emelik áraikat profitnövelés céljából.", en:"greedflation / profit-driven inflation", note:"Profithajtotta infláció" },
+  { id:"flash-pdf-014", topic:"PDF – Inflation", hu:"Az infláció szélsőséges formája, amikor az árak rendkívül gyorsan emelkednek és a pénz elveszti értékét.", en:"hyperinflation", note:"Hiperinfláció" },
+  { id:"flash-pdf-015", topic:"PDF – Inflation", hu:"Az árak általános csökkenése a gazdaságban, amely hosszabb távon káros lehet.", en:"deflation", note:"Defláció" },
+  { id:"flash-pdf-016", topic:"PDF – Labour Market", hu:"A munkaerőpiacon lévő, dolgozni képes és akaró, de munkát nem találó emberek aránya.", en:"unemployment", note:"Munkanélküliség" },
+  { id:"flash-pdf-017", topic:"PDF – Labour Market", hu:"Átmeneti munkanélküliség, amikor valaki két állás között van vagy most lép be a munkaerőpiacra.", en:"frictional unemployment", note:"Súrlódásos munkanélküliség" },
+  { id:"flash-pdf-018", topic:"PDF – Labour Market", hu:"A gazdasági visszaesésből eredő munkanélküliség.", en:"cyclical unemployment", note:"Ciklikus munkanélküliség" },
+  { id:"flash-pdf-019", topic:"PDF – Labour Market", hu:"A technológiai vagy szerkezeti változások miatt kialakuló, készségbeli eltérésből eredő munkanélküliség.", en:"structural unemployment", note:"Strukturális munkanélküliség" },
+  { id:"flash-pdf-020", topic:"PDF – Labour Market", hu:"Az év bizonyos szakaszaihoz kötődő munkákból eredő munkanélküliség.", en:"seasonal unemployment", note:"Szezonális munkanélküliség" },
+  { id:"flash-pdf-021", topic:"PDF – Interest", hu:"A hitelfelvétel ára, amely erősen befolyásolja a fogyasztást, beruházást és gazdasági aktivitást.", en:"interest rate", note:"Kamatláb" },
+  { id:"flash-pdf-022", topic:"PDF – Business cycle", hu:"A gazdasági fellendülés szakasza, amikor nő a GDP és csökken a munkanélküliség.", en:"expansion", note:"Bővülés" },
+  { id:"flash-pdf-023", topic:"PDF – Business cycle", hu:"Az üzleti ciklus legmagasabb pontja.", en:"peak", note:"Csúcspont" },
+  { id:"flash-pdf-024", topic:"PDF – Business cycle", hu:"A gazdaság lassulási szakasza, amikor csökken a GDP.", en:"contraction", note:"Visszaesés / szűkülés" },
+  { id:"flash-pdf-025", topic:"PDF – Business cycle", hu:"Általában két egymást követő negatív GDP-negyedévvel jellemzett visszaesés.", en:"recession", note:"Recesszió" },
+  { id:"flash-pdf-026", topic:"PDF – Business cycle", hu:"Az üzleti ciklus legalacsonyabb pontja.", en:"trough", note:"Mélypont" },
+  { id:"flash-pdf-027", topic:"PDF – Banking", hu:"Olyan bankrendszer, ahol az első szint a központi bank, a második a kereskedelmi bankoké.", en:"two-tier banking system", note:"Kétszintű bankrendszer" },
+  { id:"flash-pdf-028", topic:"PDF – Banking", hu:"Az ország pénzkínálatát, monetáris politikáját és pénzügyi stabilitását felügyelő intézmény.", en:"central bank", note:"Központi bank" },
+  { id:"flash-pdf-029", topic:"PDF – Banking", hu:"A háztartásokkal és cégekkel közvetlenül kapcsolatban lévő bank, amely betéteket kezel és hiteleket nyújt.", en:"commercial bank", note:"Kereskedelmi bank" },
+  { id:"flash-pdf-030", topic:"PDF – Banking", hu:"A bank profitabilitásának mutatója: a kamatbevételek és kamatkiadások különbsége.", en:"net interest margin", note:"Nettó kamatmarzs" },
+  { id:"flash-pdf-031", topic:"PDF – Banking", hu:"Napi tranzakciókra használt bankszámla brit megnevezése.", en:"current account", note:"Folyószámla (UK)" },
+  { id:"flash-pdf-032", topic:"PDF – Banking", hu:"Napi tranzakciókra használt bankszámla amerikai megnevezése.", en:"checking account", note:"Folyószámla (US)" },
+  { id:"flash-pdf-033", topic:"PDF – Banking", hu:"Olyan számla, amely kamatot fizet és megtakarításra szolgál.", en:"savings account", note:"Megtakarítási számla" },
+  { id:"flash-pdf-034", topic:"PDF – Banking", hu:"Szolgáltatás, amely lehetővé teszi, hogy az ügyfél a számlaegyenlegénél többet költsön egy limit erejéig.", en:"overdraft facility", note:"Folyószámlahitel" },
+  { id:"flash-pdf-035", topic:"PDF – Banking", hu:"A bank által kibocsátott kártya, amellyel közvetlenül a saját számláról lehet fizetni.", en:"debit card", note:"Betéti kártya" },
+  { id:"flash-pdf-036", topic:"PDF – Banking", hu:"A bank által kibocsátott kártya, amellyel hitelre lehet vásárolni.", en:"credit card", note:"Hitelkártya" },
+  { id:"flash-pdf-037", topic:"PDF – Banking", hu:"Valuták átváltása utazás vagy nemzetközi kereskedelem céljából.", en:"foreign currency exchange", note:"Devizaátváltás" },
+  { id:"flash-pdf-038", topic:"PDF – Capital markets", hu:"Tőke bevonása részvények vagy kötvények kibocsátásával.", en:"capital raising", note:"Tőkebevonás" },
+  { id:"flash-pdf-039", topic:"PDF – Capital markets", hu:"Az első nyilvános részvénykibocsátás, amikor egy cég tőzsdére lép.", en:"initial public offering (IPO)", note:"Nyilvános részvénykibocsátás" },
+  { id:"flash-pdf-040", topic:"PDF – Capital markets", hu:"Két cég egyesülése vagy egyik cég felvásárlása a másik által.", en:"mergers and acquisitions (M&A)", note:"Összeolvadások és felvásárlások" },
+  { id:"flash-pdf-041", topic:"PDF – Capital markets", hu:"Értékpapírok adásvétele a pénzügyi piacokon.", en:"trading of securities", note:"Értékpapír-kereskedés" },
+  { id:"flash-pdf-042", topic:"PDF – Capital markets", hu:"A likviditást biztosító szereplő, aki folyamatosan vesz és elad értékpapírokat.", en:"market maker", note:"Piacképző" },
+  { id:"flash-pdf-043", topic:"PDF – Capital markets", hu:"Sok befektető pénzét összegyűjtő és diverzifikált portfólióba fektető alap.", en:"mutual fund", note:"Befektetési alap" },
+  { id:"flash-pdf-044", topic:"PDF – Capital markets", hu:"Nyugdíj célú befektetési alap, amely a befizetéseket kezeli és gyarapítja.", en:"pension fund", note:"Nyugdíjalap" }
+];
+
+const MCQ_QUESTIONS = QUESTION_BANK.filter(q => q.type === "mcq");
+const TEXT_QUESTIONS = QUESTION_BANK.filter(q => q.type === "text");
+const FLASHCARDS = [
+  ...TEXT_QUESTIONS.map(q => ({
+    id: `flash-from-text-${q.id}`,
+    topic: q.topic,
+    hu: getHungarianForAnswers(q.answer) || q.text,
+    en: Array.isArray(q.answer) ? q.answer[0] : q.answer,
+    note: q.text
+  })),
+  ...FLASHCARDS_FROM_PDF
+];
+
+function getHungarianForAnswers(answers){
+  const variants = Array.isArray(answers) ? answers : [answers];
+  for(const a of variants){
+    const n = normalize(a);
+    if(TERM_TRANSLATIONS[n]) return TERM_TRANSLATIONS[n];
+  }
+  return "Magyar jelentés nincs külön megadva";
+}
 
 function normalize(s){
   return (s ?? "")
@@ -1954,6 +1394,9 @@ function normalize(s){
     .replace(/\s+/g, " ");
 }
 
+const shuffle = arr => arr.map(v => [Math.random(), v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const pickRandom = (arr, n) => shuffle(arr).slice(0, n);
+
 function levenshtein(a, b){
   const m = a.length, n = b.length;
   const dp = Array.from({length: m+1}, () => Array(n+1).fill(0));
@@ -1962,11 +1405,7 @@ function levenshtein(a, b){
   for(let i=1;i<=m;i++){
     for(let j=1;j<=n;j++){
       const cost = a[i-1] === b[j-1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i-1][j] + 1,
-        dp[i][j-1] + 1,
-        dp[i-1][j-1] + cost
-      );
+      dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
     }
   }
   return dp[m][n];
@@ -1989,28 +1428,91 @@ function getTextAnswers(q){
   return [];
 }
 
-/* ======= ÁLLAPOT ======= */
+function getHintText(q){
+  if(q.type === "text"){
+    return `Magyar jelentés: ${getHungarianMeaningForTextQuestion(q)}`;
+  }
+  if(q.type === "mcq"){
+    return `Magyar jelentés: ${translateQuestionToHungarian(q)}`;
+  }
+  return "Nincs elérhető súgó.";
+}
+
+function getHungarianMeaningForTextQuestion(q){
+  const exact = TEXT_HU_HINTS[q.id];
+  if(exact) return exact;
+
+  return `A feladat magyarul: ${q.text}`;
+}
+
+function translateQuestionToHungarian(q){
+  const custom = MCQ_HU_HINTS[q.id];
+  if(custom) return custom;
+  return q.text;
+}
+
+function translateLoose(text){
+  const t = normalize(text);
+  const exact = TERM_TRANSLATIONS[t];
+  if(exact) return exact;
+
+  const heuristics = [
+    ["uncertainty avoidance index", "bizonytalanságkerülési index"],
+    ["power distance index", "hatalmi távolság index"],
+    ["structural unemployment", "strukturális munkanélküliség"],
+    ["cyclical unemployment", "ciklikus munkanélküliség"],
+    ["seasonal unemployment", "szezonális munkanélküliség"],
+    ["depression", "gazdasági depresszió"],
+    ["recession", "recesszió"],
+    ["gni", "bruttó nemzeti jövedelem"],
+    ["gdp", "bruttó hazai termék"],
+    ["pie chart", "kördiagram"],
+    ["trough", "mélypont"],
+    ["price skimming", "magas bevezető ár, majd fokozatos csökkentés"],
+    ["penetration pricing", "alacsony bevezető ár piacnyeréshez"],
+    ["psychographic segmentation", "pszichográfiai szegmentáció"],
+    ["world trade organization", "Világkereskedelmi Szervezet"],
+    ["outsourcing", "kiszervezés"],
+    ["tariffs", "vámok"],
+    ["rich cultural heritage", "gazdag kulturális örökség"],
+    ["managing money, investments, and transactions", "pénz, befektetések és tranzakciók kezelése"]
+  ];
+
+  for(const [needle, hu] of heuristics){
+    if(t.includes(needle)) return hu;
+  }
+  return optionSafeHu(text);
+}
+
+function optionSafeHu(text){
+  return `Segítség: ${text}`;
+}
+
+let activeMode = "mcq";
 let currentSet = [];
+let currentPool = MCQ_QUESTIONS.slice();
 let score = 0;
 let answered = 0;
+let flashIndex = 0;
+let flashFlipped = false;
+let flashDeck = [];
+let flashDeckLabel = 'Összes flashcard';
+const LS_FLASH_LEARNED = "angol_app_flash_learned_v1";
+const LS_FLASH_REVIEW = "angol_app_flash_review_v1";
 
-/* ======= LocalStorage ======= */
-const LS_MISTAKES = "gazdjog_mistakes_min_v1";
-const LS_SEEN     = "gazdjog_seen_min_v1";
+const LS_MISTAKES = "angol_app_mistakes_v2";
+const LS_SEEN     = "angol_app_seen_v2";
 
 function loadMistakes(){
   try{
     const raw = localStorage.getItem(LS_MISTAKES);
     const parsed = raw ? JSON.parse(raw) : [];
-    const bankIds = new Set(QUESTIONS.map(q=>q.id));
+    const bankIds = new Set(QUESTION_BANK.map(q=>q.id));
     return parsed.filter(q=>bankIds.has(q.id));
   }catch(e){ return []; }
 }
 function saveMistakes(list){ localStorage.setItem(LS_MISTAKES, JSON.stringify(list)); }
-function removeMistake(id){
-  const list = loadMistakes().filter(x => x.id !== id);
-  saveMistakes(list);
-}
+function removeMistake(id){ saveMistakes(loadMistakes().filter(x => x.id !== id)); }
 function addMistake(q){
   const list = loadMistakes();
   if(!list.find(x=>x.id===q.id)){ list.push(q); saveMistakes(list); }
@@ -2021,13 +1523,11 @@ function loadSeen(){
   try{
     const raw = localStorage.getItem(LS_SEEN);
     const arr = raw ? JSON.parse(raw) : [];
-    const bankIds = new Set(QUESTIONS.map(q=>q.id));
+    const bankIds = new Set(QUESTION_BANK.map(q=>q.id));
     return new Set(arr.filter(id => bankIds.has(id)));
   }catch(e){ return new Set(); }
 }
-function saveSeen(seenSet){
-  localStorage.setItem(LS_SEEN, JSON.stringify([...seenSet]));
-}
+function saveSeen(seenSet){ localStorage.setItem(LS_SEEN, JSON.stringify([...seenSet])); }
 function addSeen(ids){
   const seen = loadSeen();
   ids.forEach(id => seen.add(id));
@@ -2035,43 +1535,85 @@ function addSeen(ids){
 }
 function clearSeen(){ localStorage.removeItem(LS_SEEN); }
 
-/* ======= UI ======= */
 const testContainer = document.getElementById('testContainer');
+const flashContainer = document.getElementById('flashContainer');
 const resultCard = document.getElementById('resultCard');
 const scoreLine = document.getElementById('scoreLine');
 const detailLine = document.getElementById('detailLine');
-
 const bulkCard = document.getElementById('bulkCard');
-
 const mistakesCard = document.getElementById('mistakesCard');
 const mistakesMeta = document.getElementById('mistakesMeta');
 const mistakesList = document.getElementById('mistakesList');
-
 const unseenCard = document.getElementById('unseenCard');
 const unseenMeta = document.getElementById('unseenMeta');
 const unseenList = document.getElementById('unseenList');
+
+function updateCounts(){
+  // stat cards removed intentionally
+}
+
+function setMode(mode){
+  activeMode = mode;
+  currentPool = mode === 'mcq' ? MCQ_QUESTIONS.slice() : TEXT_QUESTIONS.slice();
+
+  document.querySelectorAll('.modeTabs .btn').forEach(b => {
+    b.classList.remove('active', 'primary');
+    b.classList.add('ghost');
+  });
+
+  const btnMap = {
+    mcq: document.getElementById('modeMcqBtn'),
+    text: document.getElementById('modeTextBtn'),
+    flash: document.getElementById('modeFlashBtn')
+  };
+  btnMap[mode].classList.add('active', 'primary');
+  btnMap[mode].classList.remove('ghost');
+
+  hideSecondaryViews();
+  updateCounts();
+
+  if(mode === 'flash'){
+    testContainer.innerHTML = '';
+    resultCard.classList.add('hidden');
+    bulkCard.classList.add('hidden');
+    flashContainer.classList.remove('hidden');
+    buildFlashDeck('all');
+    renderFlashcard();
+  } else {
+    flashContainer.classList.add('hidden');
+    renderTest(pickRandom(currentPool, Math.min(20, currentPool.length)));
+  }
+}
+
+function hideSecondaryViews(){
+  mistakesCard.classList.add('hidden');
+  unseenCard.classList.add('hidden');
+  document.querySelectorAll('.topTabs .btn').forEach(b=>b.classList.remove('active'));
+}
 
 function updateResultMistakesBtn(){
   const n = loadMistakes().length;
   const btn1 = document.getElementById('resultPracticeMistakesBtn');
   const btn2 = document.getElementById('practiceMistakesBtn');
   if (btn1) btn1.textContent = `Hibáim tanulása (${n})`;
-  if (btn2) btn2.textContent = `Hibáim tanulása (10 véletlen kérdés)`;
+  if (btn2) btn2.textContent = `Hibáim tanulása (10)`;
 }
 
-/* ======= TESZT RENDER ======= */
 function renderTest(questions){
-  bulkCard?.classList.remove('hidden');
+  flashContainer.classList.add('hidden');
+  bulkCard.classList.remove('hidden');
   testContainer.innerHTML = "";
-
   resultCard.classList.add('hidden');
-  mistakesCard.classList.add('hidden');
-  unseenCard.classList.add('hidden');
-  document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+  hideSecondaryViews();
 
   score = 0;
   answered = 0;
   currentSet = questions.slice();
+
+  if(!questions.length){
+    testContainer.innerHTML = `<div class="card"><div class="empty">Ebben a módban nincs több kérdés.</div></div>`;
+    return;
+  }
 
   questions.forEach((q, idx)=>{
     const card = document.createElement('div');
@@ -2081,7 +1623,7 @@ function renderTest(questions){
     const header = document.createElement('div');
     header.innerHTML = `<div class="row" style="justify-content:space-between">
       <div><span class="pill">${idx+1}. kérdés</span> <span class="tag">${q.topic||""}</span></div>
-      <div class="meta">${q.type==="mcq" ? (q.multi ? "Több válasz lehetséges" : "Egy válasz") : "Kitöltős"}</div>
+      <div class="meta">${q.type==="mcq" ? (q.multi ? "Több válasz" : "Egy válasz") : "Pontos angol kifejezés"}</div>
     </div>`;
     card.appendChild(header);
 
@@ -2096,24 +1638,20 @@ function renderTest(questions){
       (q.options || []).forEach((opt, i)=>{
         const optDiv = document.createElement('label');
         optDiv.className = 'opt';
-
         const input = document.createElement('input');
         input.type = q.multi ? 'checkbox' : 'radio';
         input.name = `ans-${q.id}`;
         input.value = i;
-
         optDiv.appendChild(input);
-
         const span = document.createElement('span');
         span.textContent = " " + ["A)","B)","C)","D)","E)","F)"][i] + " " + opt;
         optDiv.appendChild(span);
-
         answersWrap.appendChild(optDiv);
       });
     } else {
       const input = document.createElement('input');
       input.type = "text";
-      input.placeholder = "Írd be a megoldást…";
+      input.placeholder = "Írd be a pontos angol kifejezést…";
       input.id = `fill-${q.id}`;
       answersWrap.appendChild(input);
     }
@@ -2125,7 +1663,8 @@ function renderTest(questions){
     footer.innerHTML = `
       <div class="meta" id="fb-${q.id}"></div>
       <div class="row">
-        <button class="btn small ghost" data-action="show-solution" data-qid="${q.id}">Megoldás mutatása</button>
+        <button class="btn small ghost" data-action="hint" data-qid="${q.id}">Súgó</button>
+        <button class="btn small ghost" data-action="show-solution" data-qid="${q.id}">Megoldás</button>
         <button class="btn small" data-action="check" data-qid="${q.id}">Ellenőrzés</button>
       </div>
     `;
@@ -2137,34 +1676,40 @@ function renderTest(questions){
   updateResultMistakesBtn();
 }
 
-/* ======= GOMBOK A KÁRTYÁN ======= */
+function showHint(q){
+  const card = document.getElementById(`q-${q.id}`);
+  if(!card) return;
+  let box = card.querySelector('.hintBox');
+  if(!box){
+    box = document.createElement('div');
+    box.className = 'hintBox';
+    card.insertBefore(box, card.querySelector('.footer'));
+  }
+  box.textContent = getHintText(q);
+}
+
 if (!window.__cardsBound){
   testContainer.addEventListener('click', (ev)=>{
     const btn = ev.target.closest('button[data-action]');
     if(!btn) return;
-
     const qid = btn.getAttribute('data-qid');
     const action = btn.getAttribute('data-action');
     const q = currentSet.find(x=>x.id===qid);
     if(!q) return;
-
-    if(action === "check"){
-      handleCheck(q);
-    }else if(action === "show-solution"){
-      showSolution(q);
-    }
+    if(action === 'check') handleCheck(q);
+    if(action === 'show-solution') showSolution(q);
+    if(action === 'hint') showHint(q);
   });
   window.__cardsBound = true;
 }
 
-/* ======= ELLENŐRZÉS ======= */
 function handleCheck(q){
   addSeen([q.id]);
   const card = document.getElementById(`q-${q.id}`);
   const fb = document.getElementById(`fb-${q.id}`);
   let isCorrect = false;
 
-  if(q.type === "mcq"){
+  if(q.type === 'mcq'){
     const inputs = [...card.querySelectorAll(`input[name="ans-${q.id}"]`)];
     const sel = inputs.filter(i=>i.checked).map(i=>parseInt(i.value,10));
 
@@ -2172,7 +1717,6 @@ function handleCheck(q){
       const wrap = i.parentElement;
       const idx = parseInt(i.value,10);
       const good = (q.correct || []).includes(idx);
-
       wrap.classList.remove('correct','incorrect');
       if(good) wrap.classList.add('correct');
       if(i.checked && !good) wrap.classList.add('incorrect');
@@ -2182,257 +1726,374 @@ function handleCheck(q){
     sel.sort((a,b)=>a-b);
     const corr = [...(q.correct || [])].sort((a,b)=>a-b);
     isCorrect = JSON.stringify(sel) === JSON.stringify(corr);
-
   } else {
     const input = card.querySelector('input[type="text"]');
     const given = input.value;
     const accepted = getTextAnswers(q);
-
     isCorrect = isAcceptable(given, accepted);
     input.disabled = true;
 
     if(isCorrect){
-      input.style.borderColor = "rgba(16,185,129,.8)";
-      input.style.background = "rgba(16,185,129,.08)";
+      input.style.borderColor = 'rgba(16,185,129,.8)';
+      input.style.background = 'rgba(16,185,129,.08)';
     } else {
-      input.style.borderColor = "rgba(239,68,68,.8)";
-      input.style.background = "rgba(239,68,68,.08)";
-
+      input.style.borderColor = 'rgba(239,68,68,.8)';
+      input.style.background = 'rgba(239,68,68,.08)';
       if(!card.querySelector('.text-solution')){
         const solDiv = document.createElement('div');
         solDiv.className = 'meta text-solution';
-        solDiv.style.marginTop = "8px";
-        solDiv.textContent = "Megoldás: " + accepted.join(" | ");
+        solDiv.style.marginTop = '8px';
+        solDiv.textContent = 'Megoldás: ' + accepted.join(' | ');
         input.insertAdjacentElement('afterend', solDiv);
       }
     }
   }
 
-  fb.textContent = isCorrect ? "✅ Helyes válasz! +1 pont" : "❌ Nem teljesen jó.";
+  fb.textContent = isCorrect ? '✅ Helyes válasz! +1 pont' : '❌ Nem jó.';
 
   if(!card.dataset.done){
     answered++;
-    if(isCorrect){
-      score++;
-      removeMistake(q.id);
-    } else {
-      addMistake(q);
-    }
-    card.dataset.done = "1";
+    if(isCorrect){ score++; removeMistake(q.id); }
+    else { addMistake(q); }
+    card.dataset.done = '1';
     updateResultMistakesBtn();
-
     if(!mistakesCard.classList.contains('hidden')) renderMistakesView();
   }
 
   if(answered === currentSet.length) finalizeScore();
 }
 
-/* ======= MEGOLDÁS MUTATÁSA ======= */
 function showSolution(q){
   addSeen([q.id]);
   const card = document.getElementById(`q-${q.id}`);
   const fb = document.getElementById(`fb-${q.id}`);
 
-  if(q.type === "mcq"){
+  if(q.type === 'mcq'){
     const inputs = [...card.querySelectorAll(`input[name="ans-${q.id}"]`)];
     inputs.forEach(i=>{
       const wrap = i.parentElement;
       const idx = parseInt(i.value,10);
       const good = (q.correct || []).includes(idx);
-
       wrap.classList.remove('correct','incorrect');
       if(good) wrap.classList.add('correct');
       i.disabled = true;
     });
-
-    fb.textContent = "Megoldás kiemelve zölddel.";
-
+    fb.textContent = 'Megoldás kiemelve.';
   } else {
     const input = card.querySelector('input[type="text"]');
     const accepted = getTextAnswers(q);
-
     input.disabled = true;
-
     if(!card.querySelector('.text-solution')){
       const solDiv = document.createElement('div');
       solDiv.className = 'meta text-solution';
-      solDiv.style.marginTop = "8px";
-      solDiv.textContent = "Megoldás: " + accepted.join(" | ");
+      solDiv.style.marginTop = '8px';
+      solDiv.textContent = 'Megoldás: ' + accepted.join(' | ');
       input.insertAdjacentElement('afterend', solDiv);
     }
-
-    fb.textContent = "Megoldás megjelenítve.";
+    fb.textContent = 'Megoldás megjelenítve.';
   }
 
   if(!card.dataset.done){
     answered++;
-    card.dataset.done = "1";
+    card.dataset.done = '1';
   }
 
   if(answered === currentSet.length) finalizeScore();
 }
 
-/* ======= EREDMÉNY ======= */
 function finalizeScore(){
   resultCard.classList.remove('hidden');
   const pct = currentSet.length ? Math.round((score/currentSet.length)*100) : 0;
   scoreLine.textContent = `Pontszám: ${score} / ${currentSet.length}`;
-  detailLine.textContent = `Teljesítmény: ${pct}% • Helyes válasz után zöld keret, hibás után piros.`;
+  detailLine.textContent = `Teljesítmény: ${pct}%`;
 }
 
-/* ======= FELSŐ GOMBOK ======= */
-if (!window.__topBtnsBound){
-  document.getElementById('startBtn').addEventListener('click', ()=>{
-    const n = Math.min(20, QUESTIONS.length);
-    renderTest(pickRandom(QUESTIONS, n));
+function renderMistakesView(){
+  const list = loadMistakes().filter(q => activeMode === 'mcq' ? q.type === 'mcq' : q.type === 'text');
+  mistakesList.innerHTML = '';
+  mistakesMeta.textContent = list.length ? `Összes rögzített hibád az aktuális módban: ${list.length} db.` : 'Még nincs rögzített hibád ebben a módban.';
+  if(!list.length){
+    mistakesList.innerHTML = '<div class="empty">Nincs listázható hiba.</div>';
+  }
+  list.forEach((q, idx)=>{
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ''}</em> — ${q.text}`;
+    mistakesList.appendChild(div);
   });
+  updateResultMistakesBtn();
+}
 
-  document.getElementById('showAllBtn').addEventListener('click', ()=>{
-    renderTest([...QUESTIONS]);
+function getUnseen(){
+  const seen = loadSeen();
+  return currentPool.filter(q => !seen.has(q.id));
+}
+
+function renderUnseenView(){
+  const unseen = getUnseen();
+  unseenList.innerHTML = '';
+  unseenMeta.textContent = unseen.length ? `Még nem tanult kérdések száma ebben a módban: ${unseen.length} db.` : 'Már mindent láttál ebben a módban.';
+  if(!unseen.length){
+    unseenList.innerHTML = '<div class="empty">Nincs új kérdés.</div>';
+  }
+  unseen.forEach((q, idx) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ''}</em> — ${q.text}`;
+    unseenList.appendChild(div);
   });
+}
 
-  document.getElementById('restartBtn').addEventListener('click', ()=>{
-    const n = Math.min(20, QUESTIONS.length);
-    renderTest(pickRandom(QUESTIONS, n));
-  });
+function loadFlashLearned(){
+  try{return new Set(JSON.parse(localStorage.getItem(LS_FLASH_LEARNED) || '[]'));}catch(e){return new Set();}
+}
+function saveFlashLearned(set){ localStorage.setItem(LS_FLASH_LEARNED, JSON.stringify([...set])); }
+function loadFlashReview(){
+  try{return new Set(JSON.parse(localStorage.getItem(LS_FLASH_REVIEW) || '[]'));}catch(e){return new Set();}
+}
+function saveFlashReview(set){ localStorage.setItem(LS_FLASH_REVIEW, JSON.stringify([...set])); }
+function markFlashLearned(){
+  if(!flashDeck.length) return;
+  const card = flashDeck[flashIndex];
+  const learned = loadFlashLearned();
+  const review = loadFlashReview();
+  learned.add(card.id);
+  review.delete(card.id);
+  saveFlashLearned(learned);
+  saveFlashReview(review);
+  if(flashDeckLabel === 'Nem mentek'){
+    flashDeck = flashDeck.filter(x => x.id !== card.id);
+    if(flashIndex >= flashDeck.length) flashIndex = Math.max(0, flashDeck.length - 1);
+    renderFlashcard();
+    return;
+  }
+  nextFlash();
+}
+function markFlashNotLearned(){
+  if(!flashDeck.length) return;
+  const card = flashDeck[flashIndex];
+  const review = loadFlashReview();
+  const learned = loadFlashLearned();
+  review.add(card.id);
+  learned.delete(card.id);
+  saveFlashReview(review);
+  saveFlashLearned(learned);
+  nextFlash();
+}
 
-  document.getElementById('reviewBtn').addEventListener('click', ()=>{
-    currentSet.forEach(q => showSolution(q));
-  });
+function getFlashReviewCards(){
+  const review = loadFlashReview();
+  return FLASHCARDS.filter(card => review.has(card.id));
+}
 
+function buildFlashDeck(mode = 'all'){
+  if(mode === 'review'){
+    const reviewCards = getFlashReviewCards();
+    flashDeck = reviewCards.length ? reviewCards : [];
+    flashDeckLabel = 'Nem mentek';
+    flashIndex = 0;
+    return;
+  }
+  if(mode === 'random20'){
+    flashDeck = pickRandom(FLASHCARDS, Math.min(20, FLASHCARDS.length));
+    flashDeckLabel = 'Random 20 szó';
+    flashIndex = 0;
+    return;
+  }
+  flashDeck = [...FLASHCARDS];
+  flashDeckLabel = 'Összes flashcard';
+  flashIndex = 0;
+}
+
+function renderFlashcard(){
+  if(!flashDeck.length){
+    document.getElementById('flashFrontText').textContent = 'Nincs ilyen kártya ebben a csomagban.';
+    document.getElementById('flashBackText').textContent = '—';
+    document.getElementById('flashBackSub').textContent = 'Jelölj meg néhány szót balra húzással / a bal gombbal, és itt megjelennek.';
+    document.getElementById('flashFrontTopic').textContent = flashDeckLabel;
+    document.getElementById('flashBackTopic').textContent = flashDeckLabel;
+    document.getElementById('flashCounter').textContent = `0 / 0 • ${flashDeckLabel}`;
+    const el = document.getElementById('flashCard');
+    flashFlipped = false;
+    el.classList.remove('flipped');
+    return;
+  }
+  flashIndex = Math.max(0, Math.min(flashIndex, flashDeck.length - 1));
+  const card = flashDeck[flashIndex];
+  const learned = loadFlashLearned();
+  const review = loadFlashReview();
+  document.getElementById('flashFrontText').textContent = card.hu;
+  document.getElementById('flashBackText').textContent = card.en;
+  document.getElementById('flashBackSub').textContent = card.note || '';
+  document.getElementById('flashFrontTopic').textContent = `${card.topic || ''} ${learned.has(card.id) ? '• megtanult' : review.has(card.id) ? '• újranézendő' : ''}`.trim();
+  document.getElementById('flashBackTopic').textContent = `${card.topic || ''} ${learned.has(card.id) ? '• megtanult' : review.has(card.id) ? '• újranézendő' : ''}`.trim();
+  document.getElementById('flashCounter').textContent = `${flashIndex + 1} / ${flashDeck.length} • ${flashDeckLabel}`;
+  const el = document.getElementById('flashCard');
+  flashFlipped = false;
+  el.classList.remove('flipped');
+}
+
+function flipFlashcard(){
+  flashFlipped = !flashFlipped;
+  document.getElementById('flashCard').classList.toggle('flipped', flashFlipped);
+}
+
+function nextFlash(){
+  if(!flashDeck.length) return;
+  flashIndex = (flashIndex + 1) % flashDeck.length;
+  renderFlashcard();
+}
+
+function prevFlash(){
+  if(!flashDeck.length) return;
+  flashIndex = (flashIndex - 1 + flashDeck.length) % flashDeck.length;
+  renderFlashcard();
+}
+
+function startRandomRound(){
+  if(activeMode === 'flash'){
+    buildFlashDeck('random20');
+    flashContainer.classList.remove('hidden');
+    renderFlashcard();
+    return;
+  }
+  renderTest(pickRandom(currentPool, Math.min(20, currentPool.length)));
+}
+
+function initApp(){
+  const modeMcqBtn = document.getElementById('modeMcqBtn');
+  const modeTextBtn = document.getElementById('modeTextBtn');
+  const modeFlashBtn = document.getElementById('modeFlashBtn');
+  const startBtn = document.getElementById('startBtn');
+  const showAllBtn = document.getElementById('showAllBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const reviewBtn = document.getElementById('reviewBtn');
   const mistakesTabBtn = document.getElementById('mistakesTabBtn');
-  mistakesTabBtn.addEventListener('click', ()=>{
+  const unseenTabBtn = document.getElementById('unseenTabBtn');
+
+  if(modeMcqBtn) modeMcqBtn.onclick = () => setMode('mcq');
+  if(modeTextBtn) modeTextBtn.onclick = () => setMode('text');
+  if(modeFlashBtn) modeFlashBtn.onclick = () => setMode('flash');
+
+  if(startBtn) startBtn.onclick = startRandomRound;
+  if(showAllBtn) showAllBtn.onclick = () => {
+    if(activeMode === 'flash'){
+      buildFlashDeck('all');
+      renderFlashcard();
+      flashContainer.classList.remove('hidden');
+      testContainer.innerHTML = '';
+      resultCard.classList.add('hidden');
+      bulkCard.classList.add('hidden');
+    } else {
+      renderTest([...currentPool]);
+    }
+  };
+  if(restartBtn) restartBtn.onclick = startRandomRound;
+  if(reviewBtn) reviewBtn.onclick = () => currentSet.forEach(q => showSolution(q));
+
+  if(mistakesTabBtn) mistakesTabBtn.onclick = () => {
+    if(activeMode === 'flash') return;
     renderMistakesView();
     mistakesCard.classList.remove('hidden');
     unseenCard.classList.add('hidden');
     resultCard.classList.add('hidden');
     bulkCard.classList.add('hidden');
-    testContainer.innerHTML = "";
-    document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+    flashContainer.classList.add('hidden');
+    testContainer.innerHTML = '';
+    document.querySelectorAll('.topTabs .btn').forEach(b=>b.classList.remove('active'));
     mistakesTabBtn.classList.add('active');
-  });
+  };
 
-  const unseenTabBtn = document.getElementById('unseenTabBtn');
-  unseenTabBtn.addEventListener('click', ()=>{
+  if(unseenTabBtn) unseenTabBtn.onclick = () => {
+    if(activeMode === 'flash') return;
     renderUnseenView();
     unseenCard.classList.remove('hidden');
     mistakesCard.classList.add('hidden');
     resultCard.classList.add('hidden');
     bulkCard.classList.add('hidden');
-    testContainer.innerHTML = "";
-    document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.remove('active'));
+    flashContainer.classList.add('hidden');
+    testContainer.innerHTML = '';
+    document.querySelectorAll('.topTabs .btn').forEach(b=>b.classList.remove('active'));
     unseenTabBtn.classList.add('active');
-  });
+  };
 
-  window.__topBtnsBound = true;
-}
+  const practiceMistakes10 = document.getElementById('practiceMistakes10');
+  const practiceMistakes20 = document.getElementById('practiceMistakes20');
+  const clearMistakesBtn = document.getElementById('clearMistakesBtn');
+  const practiceMistakesBtn = document.getElementById('practiceMistakesBtn');
+  const practiceMistakesAll = document.getElementById('practiceMistakesAll');
+  const resultPracticeMistakesBtn = document.getElementById('resultPracticeMistakesBtn');
+  const practiceUnseen10 = document.getElementById('practiceUnseen10');
+  const practiceUnseen20 = document.getElementById('practiceUnseen20');
+  const clearSeenBtn = document.getElementById('clearSeenBtn');
+  const flashCardEl = document.getElementById('flashCard');
+  const flashFlipBtn = document.getElementById('flashFlipBtn');
+  const flashNextBtn = document.getElementById('flashNextBtn');
+  const flashPrevBtn = document.getElementById('flashPrevBtn');
+  const flashLearnedBtn = document.getElementById('flashLearnedBtn');
+  const flashNotLearnedBtn = document.getElementById('flashNotLearnedBtn');
+  const flashRandom20Btn = document.getElementById('flashRandom20Btn');
+  const flashReviewOnlyBtn = document.getElementById('flashReviewOnlyBtn');
+  const flashAllBtn = document.getElementById('flashAllBtn');
 
-/* ======= HIBÁIM ======= */
-function renderMistakesView(){
-  const list = loadMistakes();
-  mistakesList.innerHTML = "";
-  mistakesMeta.textContent = list.length
-    ? `Összes rögzített hibád: ${list.length} db.`
-    : "Még nincs rögzített hibád.";
+  if(practiceMistakes10) practiceMistakes10.onclick = () => {
+    const list = loadMistakes().filter(q => q.type === activeMode);
+    if(list.length === 0){ alert('Nincs még hibád ebben a módban.'); return; }
+    renderTest(pickRandom(list, Math.min(10, list.length)));
+  };
+  if(practiceMistakes20) practiceMistakes20.onclick = () => {
+    const list = loadMistakes().filter(q => q.type === activeMode);
+    if(list.length === 0){ alert('Nincs még hibád ebben a módban.'); return; }
+    renderTest(pickRandom(list, Math.min(20, list.length)));
+  };
+  if(clearMistakesBtn) clearMistakesBtn.onclick = () => {
+    if(confirm('Biztosan törlöd az összes hibát?')){ clearMistakes(); renderMistakesView(); }
+  };
+  if(practiceMistakesBtn) practiceMistakesBtn.onclick = () => {
+    const mistakes = loadMistakes().filter(q => q.type === activeMode);
+    if(mistakes.length === 0){ alert('Még nincsenek hibáid ebben a módban.'); return; }
+    renderTest(pickRandom(mistakes, Math.min(10, mistakes.length)));
+  };
+  if(practiceMistakesAll) practiceMistakesAll.onclick = () => {
+    const list = loadMistakes().filter(q => q.type === activeMode);
+    if(list.length === 0){ alert('Nincs még hibád ebben a módban.'); return; }
+    renderTest([...list]);
+  };
+  if(resultPracticeMistakesBtn) resultPracticeMistakesBtn.onclick = () => {
+    const mistakes = loadMistakes().filter(q => q.type === activeMode);
+    if(mistakes.length === 0){ alert('Még nincsenek hibáid ebben a módban.'); return; }
+    renderTest(pickRandom(mistakes, Math.min(20, mistakes.length)));
+  };
+  if(practiceUnseen10) practiceUnseen10.onclick = () => {
+    const unseen = getUnseen();
+    if (unseen.length === 0){ alert('Nincs több új kérdés.'); return; }
+    renderTest(pickRandom(unseen, Math.min(10, unseen.length)));
+  };
+  if(practiceUnseen20) practiceUnseen20.onclick = () => {
+    const unseen = getUnseen();
+    if (unseen.length === 0){ alert('Nincs több új kérdés.'); return; }
+    renderTest(pickRandom(unseen, Math.min(20, unseen.length)));
+  };
+  if(clearSeenBtn) clearSeenBtn.onclick = () => {
+    if (confirm("Törlöd a 'már látott' kérdések listáját?")){ clearSeen(); renderUnseenView(); }
+  };
 
-  list.forEach((q, idx)=>{
-    const div = document.createElement('div');
-    div.className = 'list-item';
-    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ""}</em> — ${q.text}`;
-    mistakesList.appendChild(div);
-  });
+  if(flashCardEl) flashCardEl.onclick = flipFlashcard;
+  if(flashFlipBtn) flashFlipBtn.onclick = flipFlashcard;
+  if(flashNextBtn) flashNextBtn.onclick = nextFlash;
+  if(flashPrevBtn) flashPrevBtn.onclick = prevFlash;
+  if(flashLearnedBtn) flashLearnedBtn.onclick = markFlashLearned;
+  if(flashNotLearnedBtn) flashNotLearnedBtn.onclick = markFlashNotLearned;
+  if(flashRandom20Btn) flashRandom20Btn.onclick = () => { buildFlashDeck('random20'); renderFlashcard(); };
+  if(flashReviewOnlyBtn) flashReviewOnlyBtn.onclick = () => { buildFlashDeck('review'); renderFlashcard(); };
+  if(flashAllBtn) flashAllBtn.onclick = () => { buildFlashDeck('all'); renderFlashcard(); };
 
+  updateCounts();
   updateResultMistakesBtn();
+  setMode('mcq');
 }
 
-document.getElementById('practiceMistakes10').addEventListener('click', ()=>{
-  const list = loadMistakes();
-  if(list.length === 0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
-  renderTest(pickRandom(list, Math.min(10, list.length)));
-});
-
-document.getElementById('practiceMistakes20').addEventListener('click', ()=>{
-  const list = loadMistakes();
-  if(list.length === 0){ alert("Nincs még hibád. Oldj meg pár kérdést előbb!"); return; }
-  renderTest(pickRandom(list, Math.min(20, list.length)));
-});
-
-document.getElementById('clearMistakesBtn').addEventListener('click', ()=>{
-  if(confirm("Biztosan törlöd az összes rögzített hibát?")){
-    clearMistakes();
-    renderMistakesView();
-  }
-});
-
-document.getElementById('practiceMistakesBtn').addEventListener('click', ()=>{
-  const mistakes = loadMistakes();
-  if(mistakes.length === 0){
-    alert("Még nincsenek rögzített hibáid. Oldj meg néhány kérdést előbb!");
-    return;
-  }
-  renderTest(pickRandom(mistakes, Math.min(10, mistakes.length)));
-});
-
-document.getElementById('practiceMistakesAll').addEventListener('click', ()=>{
-  const list = loadMistakes();
-  if(list.length === 0){
-    alert("Nincs még hibád. Oldj meg pár kérdést előbb!");
-    return;
-  }
-  renderTest([...list]);
-});
-
-document.getElementById('resultPracticeMistakesBtn').addEventListener('click', ()=>{
-  const mistakes = loadMistakes();
-  if(mistakes.length === 0){
-    alert("Még nincsenek rögzített hibáid. Oldj meg pár kérdést előbb!");
-    return;
-  }
-  renderTest(pickRandom(mistakes, Math.min(20, mistakes.length)));
-});
-
-/* ======= UNSEEN ======= */
-function getUnseen(){
-  const seen = loadSeen();
-  return QUESTIONS.filter(q => !seen.has(q.id));
-}
-
-function renderUnseenView(){
-  const unseen = getUnseen();
-  unseenList.innerHTML = "";
-  unseenMeta.textContent = unseen.length
-    ? `Még nem tanult kérdések száma: ${unseen.length} db.`
-    : "Gratulálok! Minden kérdést legalább egyszer láttál.";
-
-  unseen.forEach((q, idx) => {
-    const div = document.createElement('div');
-    div.className = 'list-item';
-    div.innerHTML = `<strong>${idx+1}.</strong> <em>${q.topic || ""}</em> — ${q.text}`;
-    unseenList.appendChild(div);
-  });
-}
-
-document.getElementById('practiceUnseen10').addEventListener('click', ()=>{
-  const unseen = getUnseen();
-  if (unseen.length === 0){ alert("Nincs több új kérdés."); return; }
-  renderTest(pickRandom(unseen, Math.min(10, unseen.length)));
-});
-
-document.getElementById('practiceUnseen20').addEventListener('click', ()=>{
-  const unseen = getUnseen();
-  if (unseen.length === 0){ alert("Nincs több új kérdés."); return; }
-  renderTest(pickRandom(unseen, Math.min(80, unseen.length)));
-});
-
-document.getElementById('clearSeenBtn').addEventListener('click', ()=>{
-  if (confirm("Törlöd a 'már látott' kérdések listáját?")){
-    clearSeen();
-    renderUnseenView();
-  }
-});
-
-/* ======= INIT ======= */
-updateResultMistakesBtn();
+initApp();
 </script>
 </body>
 </html>
